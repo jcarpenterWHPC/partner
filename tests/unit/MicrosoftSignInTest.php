@@ -140,7 +140,9 @@ final class MicrosoftSignInTest extends CIUnitTestCase
     $this->assertArrayNotHasKey('prompt', $q);
     parse_str(parse_url($this->ms()->begin(null)['url'], PHP_URL_QUERY), $q2);
     $this->assertSame('select_account', $q2['prompt']);
-    $this->assertFalse((new MicrosoftSignIn(new Partner()))->enabled());
+    $off = new Partner();
+    $off->microsoftTenant = $off->microsoftClientId = $off->microsoftClientSecret = '';
+    $this->assertFalse((new MicrosoftSignIn($off))->enabled());
   }
   public function testTheConfiguredAdminListParses(): void
   {
