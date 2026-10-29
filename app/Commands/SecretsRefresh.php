@@ -107,6 +107,14 @@ class SecretsRefresh extends BaseCommand
       {
         @chown($tmp, fileowner($env));
       }
+      // Apache reads .env through its group; a file that lost it would take the site down.
+      if (filegroup($tmp) !== filegroup($env))
+      {
+        @unlink($tmp);
+        $group = function_exists('posix_getgrgid') ? (posix_getgrgid(filegroup($env))['name'] ?? '') : '';
+        CLI::error("Cannot keep .env in group {$group}; .env left as it was. Add this user to that group (usermod -aG {$group} \$USER, then log in again) or run as root.");
+        return EXIT_ERROR;
+      }
     }
     $back = EnvFile::read($tmp);
     $want = array_map('strval', $vars);

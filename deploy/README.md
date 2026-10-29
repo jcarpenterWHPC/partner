@@ -29,6 +29,7 @@ generated a deploy key and left notes in `/root/WHPC-DEPLOY-NEXT-STEPS.txt`.
 1. Add the box's deploy key (printed in that file) to the GitHub repo.
 2. `sudo whpc-deploy` — clones into /var/www, installs dependencies, stops at "no .env".
 3. `sudo -u ubuntu php /var/www/spark secrets:refresh` — builds `.env` from the box's secret.
+   `.env` is `ubuntu:www-data` 0640; ubuntu is in `www-data` so a refresh keeps it readable by Apache.
 4. `sudo whpc-deploy` — migrates, fixes permissions, restarts Apache.
 5. `curl -sI http://localhost/` → 302 to /login; `curl -s http://localhost/healthcheck.html` → ok.
 6. Admins: put them in the secret as `partner.admins` (`Joe Carpenter <jcarpenter@whpc.com>, …`),

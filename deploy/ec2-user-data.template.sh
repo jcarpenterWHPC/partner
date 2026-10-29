@@ -161,6 +161,8 @@ a2ensite "${SITE_HOST}.conf"
 install -d -m 755 /var/www/public
 echo 'ok' > /var/www/public/healthcheck.html
 chown -R ubuntu:www-data /var/www
+# secrets:refresh runs as ubuntu and must keep .env in Apache's group.
+usermod -aG www-data ubuntu
 
 #------------------------------------------------------------------------------
 # 8. Deploy account SSH: GitHub host key + a per-box deploy key (public half
