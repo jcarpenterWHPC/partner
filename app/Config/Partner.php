@@ -35,7 +35,7 @@ class Partner extends BaseConfig
    * The WHPC admins, and the only WHPC people who can sign in: `Name <address>` or bare
    * addresses, comma-separated. Secret key `partner.admins`.
    */
-  public string $admins = 'Joe Carpenter <jcarpenter@whpc.com>';
+  public string $admins = 'Joe Carpenter <jcarpenter@whpc.com>, Brian Coda <bcoda@whpc.com>';
   /**
    * Microsoft Entra sign-in. The tenant is WHPC's directory id; the client is the portal's
    * app registration. Empty values switch Microsoft sign-in off. The authority is
