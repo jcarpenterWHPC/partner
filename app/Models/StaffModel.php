@@ -10,7 +10,7 @@ class StaffModel extends Model
   protected $primaryKey = 'id';
   protected $returnType = 'array';
   protected $useTimestamps = true;
-  protected $allowedFields = ['pmc_id', 'name', 'position', 'title', 'email', 'mobile_phone', 'office_phone', 'start_date', 'end_date', 'notes', 'created_by', 'updated_by'];
+  protected $allowedFields = ['pmc_id', 'contact_id', 'name', 'position', 'title', 'email', 'mobile_phone', 'office_phone', 'start_date', 'end_date', 'notes', 'synced_properties', 'synced_at', 'created_by', 'updated_by'];
   /**
    * One PMC's roster: current people first, departed last, each with the property
    * numbers they cover.

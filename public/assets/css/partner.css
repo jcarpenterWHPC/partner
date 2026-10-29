@@ -211,7 +211,9 @@ a.pp-card:hover, a.pp-card:focus-visible {
 .pp-rowactions a { font-size: 1.25rem; margin-left: 8px; text-decoration: none; }
 .pp-rowactions form { margin: 0; display: inline; }
 .pp-btn--sm { padding: 5px 10px; font-size: .85rem; }
-.pp-badge--departed, .pp-badge--reinstated, .pp-badge--updated, .pp-badge--added { margin-left: 8px; }
+.pp-badge--departed, .pp-badge--reinstated, .pp-badge--updated, .pp-badge--added, .pp-badge--imported, .pp-badge--synced { margin-left: 8px; }
+.pp-badge--imported { background: #e1f1e8; color: #2f6f4e; }
+.pp-badge--synced { background: var(--whpc-slate-soft); color: var(--whpc-slate-dark); }
 .pp-badge--departed { background: #f7e3e0; color: #8a2e22; }
 .pp-badge--added { background: #e1f1e8; color: #2f6f4e; }
 .pp-badge--updated { background: var(--whpc-slate-soft); color: var(--whpc-slate-dark); }

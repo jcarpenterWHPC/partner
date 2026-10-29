@@ -27,6 +27,26 @@ class Partner extends BaseConfig
   public bool $mailSend = true;
   /** Database group the property sync reads the intranet's `assets` table through. */
   public string $assetsGroup = 'home';
+  /** The intranet's read-only view of live property contacts, in the same group. */
+  public string $contactsView = 'partner_property_contacts';
+  /**
+   * Assets' contact role → the roster position it seeds. A role not listed here is not
+   * PMC staff (WHPC's asset managers, HUD and RD people) or is new, and is reported.
+   *
+   * @var array<string,string>
+   */
+  public array $contactRoles = [
+    'Site Manager' => 'Site Manager',
+    'Assistant Manager' => 'Assistant Manager',
+    'Regional Manager' => 'Regional Manager',
+    'Regional Vice President' => 'Regional Vice President',
+    'Maintenance' => 'Maintenance Technician',
+    'Leasing Agent' => 'Leasing Agent',
+    'Service Coordinator / Supervisor' => 'Service Coordinator',
+    'FSS Coordinator' => 'Service Coordinator',
+    'Accountant' => 'Other',
+    'Executive' => 'Other',
+  ];
   /** Who a partner writes to when they cannot sign in. */
   public string $supportMail = 'BusinessSystems@whpc.com';
   /** WHPC's mail domain. Its people sign in with Microsoft, and only $admins may. */

@@ -34,7 +34,7 @@ $show = static function ($v) use ($names): string {
             <span class="pp-badge pp-badge--<?= esc($e['action'], 'attr') ?>"><?= esc(ucfirst($e['action'])) ?></span>
             <span class="pp-muted"><?= esc($e['created_at']) ?> · <?= esc($e['user_name'] ?: 'system') ?></span>
         </div>
-        <?php if ($e['action'] === 'added'): ?>
+        <?php if ($e['action'] === 'added' || $e['action'] === 'imported'): ?>
             <dl class="pp-dl">
             <?php foreach ($c as $f => $v): if ($show($v) === '—') continue; ?>
                 <dt><?= esc($label($f)) ?></dt><dd><?= esc($show($v)) ?></dd>

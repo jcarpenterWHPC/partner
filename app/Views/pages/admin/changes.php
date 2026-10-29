@@ -20,7 +20,7 @@ $label = static fn(string $f): string => ucfirst(str_replace('_', ' ', $f));
             <td><a href="<?= base_url('roster/' . (int)$e['staff_id'] . '/history?pmc=' . (int)$e['pmc_id']) ?>"><?= esc((string)$e['staff_name']) ?></a></td>
             <td>
                 <span class="pp-badge pp-badge--<?= esc($e['action'], 'attr') ?>"><?= esc(ucfirst($e['action'])) ?></span>
-                <?php if ($e['action'] !== 'added'): ?><span class="pp-muted"><?= esc(implode(', ', array_map($label, array_keys($c)))) ?></span><?php endif; ?>
+                <?php if ($e['action'] !== 'added' && $e['action'] !== 'imported'): ?><span class="pp-muted"><?= esc(implode(', ', array_map($label, array_keys($c)))) ?></span><?php endif; ?>
             </td>
             <td><?= esc($e['user_name'] ?: 'system') ?></td>
         </tr>

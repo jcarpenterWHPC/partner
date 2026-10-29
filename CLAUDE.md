@@ -53,6 +53,14 @@ WHPC WAF). TLS ends at CloudFront; the boxes serve plain HTTP on :80 and read
   through the read-only `home` database group (user `partner_home_ro`, SELECT only) and
   fills `pmcs` + `properties`. Nightly on prod (`deploy/whpc-partner.cron`) and from the
   admin page. A property that disappears is retired, not deleted.
+- **People** come from the intranet too: `partner:sync-contacts` (`App\Libraries\ContactSync`)
+  reads the read-only view `home.partner_property_contacts` (one row per contact,
+  property and live role) and seeds each PMC's roster: one entry per contact, position
+  from `Config\Partner::$contactRoles`, recorded as an `imported` change by nobody. Later
+  runs fill blanks and add new properties (`synced`), never overwrite a PMC's edits, and
+  mark a contact Assets no longer lists as departed. The same button and cron run both
+  syncs. Writing roster changes back to Assets is not designed yet; home reviews Assets
+  edits through its ChangeLogger, so that is a conversation with Joe, not direct writes.
 - **Admin** (`AdminController`, filter `admin`): accounts, management companies + sync,
   recent changes.
 

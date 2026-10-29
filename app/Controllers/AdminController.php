@@ -2,7 +2,9 @@
 
 namespace App\Controllers;
 
+use App\Commands\SyncContacts;
 use App\Commands\SyncProperties;
+use App\Libraries\ContactSync;
 use App\Libraries\Accounts;
 use App\Libraries\PropertySync;
 use App\Models\ActivityLogModel;
@@ -188,8 +190,22 @@ class AdminController extends BaseController
       return redirect()->to('/admin/pmcs')->with('error', 'The intranet\'s property list came back empty; nothing changed.');
     }
     $r = PropertySync::apply($rows);
-    ActivityLogModel::record('admin.sync', (int)session('user')['id'], (string)session('user')['email'], json_encode($r));
-    return redirect()->to('/admin/pmcs')->with('success', sprintf('Synced: %d companies added, %d properties added, %d updated, %d retired.', $r['pmcs_added'], $r['properties_added'], $r['properties_updated'], $r['properties_retired']));
+    $msg = sprintf('Synced: %d companies added, %d properties added, %d updated, %d retired.', $r['pmcs_added'], $r['properties_added'], $r['properties_updated'], $r['properties_retired']);
+    $cfg = config(Partner::class);
+    try
+    {
+      $contacts = db_connect($group)->table($cfg->contactsView)->select(SyncContacts::COLUMNS)->get()->getResultArray();
+      $c = $contacts === [] ? null : ContactSync::apply($contacts, false, $cfg);
+      $msg .= ' ' . ($c === null ? 'People: the contacts view came back empty.' : ContactSync::describe($c));
+    }
+    catch (\Throwable $e)
+    {
+      log_message('error', '[Admin] contact sync failed: ' . $e->getMessage());
+      $c = null;
+      $msg .= ' People: the contacts view could not be read.';
+    }
+    ActivityLogModel::record('admin.sync', (int)session('user')['id'], (string)session('user')['email'], json_encode(['properties' => $r, 'people' => $c]));
+    return redirect()->to('/admin/pmcs')->with('success', $msg);
   }
   public function changes()
   {
