@@ -5,6 +5,7 @@
  * @var array<string,string> $errors
  */
 $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fielderror">' . esc($errors[$f]) . '</div>' : '';
+$accounts = new \App\Libraries\Accounts();
 ?>
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
@@ -30,16 +31,13 @@ $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fiel
         </div>
         <div class="pp-field">
             <label class="pp-label" for="u_pmc">Management company</label>
-            <select class="pp-input pp-input--select" id="u_pmc" name="pmc_id">
-                <option value="">— WHPC —</option>
+            <select class="pp-input pp-input--select" id="u_pmc" name="pmc_id" required>
+                <option value=""></option>
                 <?php foreach ($pmcs as $p): ?>
                 <option value="<?= (int)$p['id'] ?>" <?= (string)old('pmc_id', '') === (string)$p['id'] ? 'selected' : '' ?>><?= esc($p['name']) ?></option>
                 <?php endforeach; ?>
             </select>
             <?= $err('pmc_id') ?>
-        </div>
-        <div class="pp-field pp-field--check">
-            <label class="pp-check"><input type="checkbox" name="is_admin" value="1" <?= old('is_admin') ? 'checked' : '' ?>> <span>WHPC admin</span></label>
         </div>
     </div>
     <div class="pp-actions pp-actions--form">
@@ -58,7 +56,7 @@ $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fiel
             <td><?= (int)$u['is_admin'] === 1 ? 'Admin' : 'Partner' ?></td>
             <td><?= esc((string)$u['last_login_at']) ?></td>
             <td class="pp-rowactions">
-                <?php if ((int)$u['id'] !== (int)session('user')['id']): ?>
+                <?php if ((int)$u['id'] !== (int)session('user')['id'] && !$accounts->isConfiguredAdmin((string)$u['email'])): ?>
                 <form method="post" action="<?= base_url('admin/users/' . (int)$u['id'] . '/toggle') ?>">
                     <?= csrf_field() ?>
                     <button type="submit" class="pp-btn pp-btn--ghost pp-btn--sm"><?= (int)$u['is_active'] === 1 ? 'Disable' : 'Enable' ?></button>

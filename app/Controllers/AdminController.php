@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Commands\SyncProperties;
+use App\Libraries\Accounts;
 use App\Libraries\PropertySync;
 use App\Models\ActivityLogModel;
 use App\Models\PmcModel;
@@ -29,20 +30,23 @@ class AdminController extends BaseController
     $email = mb_strtolower(trim((string)$this->request->getPost('email')));
     $name = trim((string)$this->request->getPost('name'));
     $pmcId = (int)$this->request->getPost('pmc_id');
-    $admin = $this->request->getPost('is_admin') ? 1 : 0;
     $errors = [];
     if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false)
     {
       $errors['email'] = 'Enter a valid email address.';
+    }
+    elseif (config(Partner::class)->isWhpc($email))
+    {
+      $errors['email'] = 'WHPC admins are set in the portal configuration, not here.';
     }
     if ($name === '')
     {
       $errors['name'] = 'Enter the person\'s name.';
     }
     $pmc = $pmcId > 0 ? (new PmcModel())->find($pmcId) : null;
-    if (!$admin && $pmc === null)
+    if ($pmc === null)
     {
-      $errors['pmc_id'] = 'Choose the management company, or make the account an admin.';
+      $errors['pmc_id'] = 'Choose the management company.';
     }
     $users = new UserModel();
     if ($errors === [] && $users->where('email', $email)->first())
@@ -53,7 +57,7 @@ class AdminController extends BaseController
     {
       return redirect()->back()->withInput()->with('errors', $errors);
     }
-    $id = $users->insert(['email' => $email, 'name' => $name, 'pmc_id' => $pmc === null ? null : (int)$pmc['id'], 'is_admin' => $admin, 'is_active' => 1], true);
+    $id = $users->insert(['email' => $email, 'name' => $name, 'pmc_id' => (int)$pmc['id'], 'is_admin' => 0, 'is_active' => 1], true);
     ActivityLogModel::record('admin.user_added', (int)session('user')['id'], (string)session('user')['email'], $email . ' #' . $id);
     return redirect()->to('/admin/users')->with('success', $email . ' can now sign in.');
   }
@@ -68,6 +72,10 @@ class AdminController extends BaseController
     if ((int)$u['id'] === (int)session('user')['id'])
     {
       return redirect()->to('/admin/users')->with('error', 'You cannot disable your own account.');
+    }
+    if ((new Accounts())->isConfiguredAdmin((string)$u['email']))
+    {
+      return redirect()->to('/admin/users')->with('error', 'WHPC admins are set in the portal configuration, not here.');
     }
     $on = (int)$u['is_active'] === 1 ? 0 : 1;
     $users->update($id, ['is_active' => $on]);

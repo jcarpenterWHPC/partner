@@ -37,8 +37,12 @@ WHPC WAF). TLS ends at CloudFront; the boxes serve plain HTTP on :80 and read
 
 ## What is in it
 
-- **Sign-in** (`Auth`): emailed one-time code + one-click link. Accounts are made by WHPC
-  admins (`/admin/users`, or `php spark partner:user`); a PMC user belongs to one PMC.
+- **Sign-in** (`Auth`): PMC users get an emailed one-time code + one-click link; WHPC
+  people sign in with Microsoft (Entra, `App\Libraries\MicrosoftSignIn`) once it is
+  configured. PMC accounts are made by WHPC admins (`/admin/users`, or
+  `php spark partner:user`); a PMC user belongs to one PMC. The WHPC admins are the
+  addresses in `Config\Partner::$admins` (secret `partner.admins`) and nobody else at
+  WHPC can sign in; their accounts appear on first sign-in (`App\Libraries\Accounts`).
 - **Staff roster** (`RosterController`, `App\Libraries\Roster`): each PMC keeps its own
   people — name, position (Config\Partner::$positions, named as Assets' contact roles),
   title, email, phones, the properties they cover, start and end date. Nothing is deleted:
@@ -56,7 +60,15 @@ WHPC WAF). TLS ends at CloudFront; the boxes serve plain HTTP on :80 and read
 
 Passwordless. `App\Libraries\LoginCode` emails a numeric code and a one-click link, stores
 only digests, enforces the TTL / attempt / resend limits in `Config\Partner`. Whether an
-address is registered is never revealed. Accounts: `php spark partner:user …`.
+address is registered is never revealed. PMC accounts: `php spark partner:user …`.
+
+Microsoft sign-in is OpenID Connect (authorization code + PKCE) against Entra; the
+id_token is verified in `MicrosoftSignIn` (signature against Microsoft's keys, issuer,
+audience, lifetime, nonce). It is on when `partner.microsoftTenant`, `…ClientId` and
+`…ClientSecret` are in the secret, and then every `@whpc.com` address is sent to
+Microsoft instead of being emailed a code. The app registration is multi-tenant
+(`partner.microsoftAuthority = organizations`) so PMC tenants can be enrolled later;
+today `Accounts::forMicrosoft` admits WHPC's tenant only.
 
 ## Git workflow
 

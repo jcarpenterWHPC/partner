@@ -27,9 +27,8 @@ test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(() => {
   // A company of our own with one property, so nothing real is touched.
-  spark(['partner:e2e-seed', PMC, 'E2E-' + RUN]);
+  spark(['partner:e2e-seed', PMC, 'E2E-' + RUN, '--admin', ADMIN]);
   spark(['partner:user', 'add', USER, 'E2E Partner', '--pmc', PMC]);
-  spark(['partner:user', 'add', ADMIN, 'E2E Admin', '--admin']);
 });
 
 test('a PMC user adds a person with a property, edits them and sees the history', async ({ page }) => {

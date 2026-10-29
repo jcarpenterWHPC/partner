@@ -29,6 +29,23 @@ class Partner extends BaseConfig
   public string $assetsGroup = 'home';
   /** Who a partner writes to when they cannot sign in. */
   public string $supportMail = 'BusinessSystems@whpc.com';
+  /** WHPC's mail domain. Its people sign in with Microsoft, and only $admins may. */
+  public string $whpcDomain = 'whpc.com';
+  /**
+   * The WHPC admins, and the only WHPC people who can sign in: `Name <address>` or bare
+   * addresses, comma-separated. Secret key `partner.admins`.
+   */
+  public string $admins = 'Joe Carpenter <jcarpenter@whpc.com>';
+  /**
+   * Microsoft Entra sign-in. The tenant is WHPC's directory id; the client is the portal's
+   * app registration. Empty values switch Microsoft sign-in off. The authority is
+   * `organizations` for a multi-tenant registration (PMC tenants can be enrolled later)
+   * or the tenant id for a single-tenant one.
+   */
+  public string $microsoftTenant = '';
+  public string $microsoftClientId = '';
+  public string $microsoftClientSecret = '';
+  public string $microsoftAuthority = 'organizations';
   /**
    * Positions a roster entry can hold, grouped as the form offers them. The names are
    * Assets' contact-role names where one exists, so the later sync is a straight mapping.
@@ -45,5 +62,26 @@ class Partner extends BaseConfig
   public function positionNames(): array
   {
     return array_merge(...array_values($this->positions));
+  }
+  /** @return array<string,string> admin address => name ('' when only an address was given) */
+  public function admins(): array
+  {
+    $out = [];
+    foreach (explode(',', $this->admins) as $entry)
+    {
+      if (preg_match('/^\s*(?:(.*?)\s*<([^<>\s]+)>|([^<>\s]+))\s*$/', $entry, $m))
+      {
+        $out[mb_strtolower($m[2] !== '' ? $m[2] : $m[3])] = trim($m[1]);
+      }
+    }
+    return $out;
+  }
+  public function isWhpc(string $email): bool
+  {
+    return str_ends_with(mb_strtolower(trim($email)), '@' . mb_strtolower($this->whpcDomain));
+  }
+  public function microsoftEnabled(): bool
+  {
+    return $this->microsoftTenant !== '' && $this->microsoftClientId !== '' && $this->microsoftClientSecret !== '' && $this->microsoftAuthority !== '';
   }
 }

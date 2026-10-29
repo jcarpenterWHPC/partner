@@ -11,6 +11,8 @@ $routes->get('login/verify', 'Auth::verify');
 $routes->post('login/verify', 'Auth::verifySubmit');
 $routes->post('login/resend', 'Auth::resend');
 $routes->get('login/link/(:segment)', 'Auth::link/$1');
+$routes->get('login/microsoft', 'Auth::microsoft');
+$routes->get('login/microsoft/callback', 'Auth::microsoftCallback');
 $routes->post('logout', 'Auth::logout');
 $routes->get('logout', 'Auth::logout');
 

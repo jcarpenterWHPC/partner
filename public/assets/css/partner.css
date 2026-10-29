@@ -240,3 +240,8 @@ a.pp-card:hover, a.pp-card:focus-visible {
 .pp-from { color: var(--whpc-muted); text-decoration: line-through; }
 @media (max-width: 900px) { .pp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pp-field--2 { grid-column: span 2; } }
 @media (max-width: 560px) { .pp-grid { grid-template-columns: 1fr; } .pp-field--2 { grid-column: span 1; } }
+
+/* Sign-in: the "or" between the code form and the Microsoft button. */
+.whpc-login__or { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; color: var(--whpc-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.whpc-login__or::before, .whpc-login__or::after { content: ""; flex: 1; border-top: 1px solid var(--whpc-border, #d9e0e6); }
+#microsoftSignIn .bx { font-size: 1.15em; vertical-align: -2px; margin-right: 4px; }

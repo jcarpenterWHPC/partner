@@ -31,7 +31,9 @@ generated a deploy key and left notes in `/root/WHPC-DEPLOY-NEXT-STEPS.txt`.
 3. `sudo -u ubuntu php /var/www/spark secrets:refresh` — builds `.env` from the box's secret.
 4. `sudo whpc-deploy` — migrates, fixes permissions, restarts Apache.
 5. `curl -sI http://localhost/` → 302 to /login; `curl -s http://localhost/healthcheck.html` → ok.
-6. First account: `sudo -u ubuntu php /var/www/spark partner:user add you@whpc.com "Your Name" --admin`.
+6. Admins: put them in the secret as `partner.admins` (`Joe Carpenter <jcarpenter@whpc.com>, …`),
+   run `secrets:refresh`, and sign in; the account is made on first sign-in. PMC accounts:
+   `/admin/users` or `php spark partner:user add jane@pmc.com "Jane Doe" --pmc "Company"`.
 
 ## After the first deploy
 

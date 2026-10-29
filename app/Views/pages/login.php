@@ -1,6 +1,7 @@
 <?php
 /**
  * @var string $supportMail
+ * @var bool   $microsoft
  */
 $req = service('request');
 $notice = $req->getGet('expired') ? 'Your session has expired. Please sign in again.'
@@ -52,6 +53,10 @@ $notice = $req->getGet('expired') ? 'Your session has expired. Please sign in ag
                     <input class="pp-input" type="email" id="email" name="email" value="<?= esc(old('email', ''), 'attr') ?>" autocomplete="email" inputmode="email" required autofocus>
                     <button type="submit" class="pp-btn pp-btn--primary pp-btn--block">Email me a code</button>
                 </form>
+                <?php if ($microsoft): ?>
+                <div class="whpc-login__or">or</div>
+                <a class="pp-btn pp-btn--ghost pp-btn--block" id="microsoftSignIn" href="<?= base_url('login/microsoft') ?>"><i class="bx bxl-microsoft"></i> Sign in with Microsoft</a>
+                <?php endif; ?>
                 <div class="whpc-login__help">
                     Trouble signing in? Contact <a href="mailto:<?= esc($supportMail, 'attr') ?>"><?= esc($supportMail) ?></a>.
                 </div>

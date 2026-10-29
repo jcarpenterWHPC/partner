@@ -2,13 +2,16 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Accounts;
 use App\Libraries\LoginCode;
+use App\Libraries\MicrosoftSignIn;
 use App\Models\ActivityLogModel;
 use App\Models\UserModel;
 use Config\Partner;
 
 /**
  * Passwordless sign-in: email → one-time code (or the link in the same email) → session.
+ * WHPC people go to Microsoft instead, as soon as Microsoft sign-in is configured.
  *
  * Whether an address is registered is never revealed: an unknown address gets the same
  * "enter your code" screen, and a code typed there fails like any wrong code.
@@ -17,10 +20,12 @@ class Auth extends BaseController
 {
   private Partner $cfg;
   private UserModel $users;
+  private Accounts $accounts;
   public function __construct()
   {
     $this->cfg = config(Partner::class);
     $this->users = new UserModel();
+    $this->accounts = new Accounts($this->cfg, $this->users);
   }
   public function login()
   {
@@ -28,7 +33,7 @@ class Auth extends BaseController
     {
       return redirect()->to('/');
     }
-    return view('pages/login', ['supportMail' => $this->cfg->supportMail]);
+    return view('pages/login', ['supportMail' => $this->cfg->supportMail, 'microsoft' => $this->cfg->microsoftEnabled()]);
   }
   public function send()
   {
@@ -41,7 +46,11 @@ class Auth extends BaseController
     {
       return redirect()->to('/login')->with('error', 'Enter the work email address your WHPC contact registered.')->withInput();
     }
-    $user = $this->users->activeByEmail($email);
+    if ($this->cfg->isWhpc($email) && $this->cfg->microsoftEnabled())
+    {
+      return $this->microsoftStart($email);
+    }
+    $user = $this->accounts->forSignIn($email);
     session()->set('login_pending', ['email' => $email, 'user_id' => $user['id'] ?? null, 'at' => time(), 'sends' => 1]);
     if ($user !== null && !$this->issue($user))
     {
@@ -90,8 +99,8 @@ class Auth extends BaseController
     $result = (new LoginCode($this->cfg))->verify((int)$pending['user_id'], $code);
     if ($result['ok'])
     {
-      $user = $this->users->withPmcById((int)$pending['user_id']);
-      if ($user && (int)$user['is_active'] === 1)
+      $user = $this->accounts->forUserId((int)$pending['user_id']);
+      if ($user !== null)
       {
         return $this->establish($user, 'code');
       }
@@ -148,13 +157,59 @@ class Auth extends BaseController
       return redirect()->to('/login')->with('error', 'Too many attempts. Please wait a minute and try again.');
     }
     $userId = (new LoginCode($this->cfg))->redeem($token);
-    $user = $userId === null ? null : $this->users->withPmcById($userId);
-    if (!$user || (int)$user['is_active'] !== 1)
+    $user = $userId === null ? null : $this->accounts->forUserId($userId);
+    if ($user === null)
     {
       ActivityLogModel::record('login.failed', $userId, null, 'bad link');
       return redirect()->to('/login')->with('error', 'That sign-in link has expired or was already used. Request a new code.');
     }
     return $this->establish($user, 'link');
+  }
+  /** The "Sign in with Microsoft" button. */
+  public function microsoft()
+  {
+    if (!$this->cfg->microsoftEnabled())
+    {
+      throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+    }
+    if (session()->has('user'))
+    {
+      return redirect()->to('/');
+    }
+    if (!$this->throttle('send'))
+    {
+      return redirect()->to('/login')->with('error', 'Too many sign-in attempts. Please wait a minute and try again.');
+    }
+    return $this->microsoftStart(null);
+  }
+  public function microsoftCallback()
+  {
+    $pending = session('ms_login');
+    session()->remove('ms_login');
+    if (!$this->cfg->microsoftEnabled() || !is_array($pending) || (int)($pending['at'] ?? 0) < time() - $this->cfg->pendingTtlMinutes * 60)
+    {
+      return redirect()->to('/login')->with('error', 'That Microsoft sign-in took too long. Please start again.');
+    }
+    if (!$this->throttle('verify'))
+    {
+      return redirect()->to('/login')->with('error', 'Too many attempts. Please wait a minute and try again.');
+    }
+    try
+    {
+      $who = service('microsoftSignIn')->complete($this->request->getGet(), $pending);
+    }
+    catch (\RuntimeException $e)
+    {
+      ActivityLogModel::record('login.failed', null, null, 'microsoft: ' . $e->getMessage());
+      return redirect()->to('/login')->with('error', 'Microsoft could not sign you in. Please try again.');
+    }
+    $user = $this->accounts->forMicrosoft($who['tid'], $who['email'], $who['name']);
+    if ($user === null)
+    {
+      ActivityLogModel::record('login.unknown_email', null, $who['email'], 'microsoft ' . $who['tid']);
+      return redirect()->to('/login')->with('error', 'That Microsoft account is not set up for the Partner Portal.');
+    }
+    return $this->establish($user, 'microsoft');
   }
   public function logout()
   {
@@ -182,6 +237,13 @@ class Auth extends BaseController
     $this->users->update((int)$user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);
     ActivityLogModel::record('login.ok', (int)$user['id'], (string)$user['email'], $how);
     return redirect()->to('/');
+  }
+  private function microsoftStart(?string $loginHint)
+  {
+    $start = service('microsoftSignIn')->begin($loginHint);
+    session()->remove('login_pending');
+    session()->set('ms_login', $start['pending']);
+    return redirect()->to($start['url']);
   }
   private function issue(array $user): bool
   {
