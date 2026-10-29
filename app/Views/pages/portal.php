@@ -15,7 +15,7 @@
     <?php if (!empty($user['is_admin'])): ?>
     <a class="pp-card" href="<?= base_url('admin/users') ?>" id="cardUsers">
         <span class="pp-card__icon"><i class="bx bx-user-plus"></i></span>
-        <span class="pp-card__title">Accounts</span>
+        <span class="pp-card__title">Portal users</span>
         <span class="pp-card__go"><i class="bx bx-right-arrow-alt"></i></span>
     </a>
     <a class="pp-card" href="<?= base_url('admin/pmcs') ?>" id="cardPmcs">

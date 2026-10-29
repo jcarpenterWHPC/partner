@@ -25,7 +25,6 @@ $show = static function ($v) use ($names): string {
     </div>
     <div class="pp-actions">
         <a class="pp-btn pp-btn--ghost" href="<?= base_url('roster/' . (int)$person['id'] . '/edit') ?>">Edit</a>
-        <a class="pp-btn pp-btn--ghost" href="<?= base_url('roster') ?>">Back to the roster</a>
     </div>
 </div>
 <ol class="pp-timeline" id="historyList">

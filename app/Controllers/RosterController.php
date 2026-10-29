@@ -76,6 +76,7 @@ class RosterController extends BaseController
     }
     return view('pages/roster/index', [
       'title' => 'Staff roster · ' . $pmc['name'],
+      'crumbs' => [['Home', '/'], ['Staff roster', null]],
       'pmc' => $pmc,
       'pmcs' => !empty(session('user')['is_admin']) ? (new PmcModel())->active() : [],
       'people' => $people,
@@ -158,6 +159,7 @@ class RosterController extends BaseController
     }
     return view('pages/roster/history', [
       'title' => 'History · ' . $person['name'],
+      'crumbs' => [['Home', '/'], ['Staff roster', 'roster'], ['Edit ' . $person['name'], 'roster/' . (int)$person['id'] . '/edit'], ['History', null]],
       'pmc' => $pmc,
       'person' => $person,
       'entries' => (new StaffChangeModel())->recent((int)$pmc['id'], 500),
@@ -169,6 +171,7 @@ class RosterController extends BaseController
     $values = $values ?? ($person ? $person + ['properties' => $person['properties']] : ['properties' => []]);
     return view('pages/roster/form', [
       'title' => ($person ? 'Edit ' . $person['name'] : 'Add a person') . ' · ' . $pmc['name'],
+      'crumbs' => [['Home', '/'], ['Staff roster', 'roster'], [$person ? 'Edit ' . $person['name'] : 'Add a person', null]],
       'pmc' => $pmc,
       'person' => $person,
       'v' => $values,

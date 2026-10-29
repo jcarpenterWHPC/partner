@@ -6,7 +6,7 @@ $label = static fn(string $f): string => ucfirst(str_replace('_', ' ', $f));
 <?= $this->section('content') ?>
 <div class="pp-pagehead">
     <div><h1 class="pp-h1">Recent roster changes</h1></div>
-    <div class="pp-actions"><a class="pp-btn pp-btn--ghost" href="<?= base_url('/') ?>">Home</a></div>
+    
 </div>
 <div class="pp-tablewrap">
 <table class="pp-table" id="changesTable">

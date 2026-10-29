@@ -3,6 +3,7 @@
  * @var list<array>          $users
  * @var list<array>          $pmcs
  * @var array<string,string> $errors
+ * @var array<int,int>       $authored  user id => roster changes they made
  */
 $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fielderror">' . esc($errors[$f]) . '</div>' : '';
 $accounts = new \App\Libraries\Accounts();
@@ -10,11 +11,14 @@ $accounts = new \App\Libraries\Accounts();
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
 <div class="pp-pagehead">
-    <div><h1 class="pp-h1">Accounts</h1></div>
-    <div class="pp-actions"><a class="pp-btn pp-btn--ghost" href="<?= base_url('/') ?>">Home</a></div>
+    <div><h1 class="pp-h1">Portal users</h1></div>
+    
 </div>
 <?php if (session()->getFlashdata('success')): ?>
     <div class="whpc-alert whpc-alert--success" role="status"><i class="bx bx-check-circle"></i><span><?= esc(session()->getFlashdata('success')) ?></span></div>
+<?php endif; ?>
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
 <?php endif; ?>
 <form method="post" action="<?= base_url('admin/users') ?>" class="pp-form pp-form--wide pp-panel" id="userForm">
     <?= csrf_field() ?>
@@ -57,10 +61,17 @@ $accounts = new \App\Libraries\Accounts();
             <td><?= esc((string)$u['last_login_at']) ?></td>
             <td class="pp-rowactions">
                 <?php if ((int)$u['id'] !== (int)session('user')['id'] && !$accounts->isConfiguredAdmin((string)$u['email'])): ?>
+                <a href="<?= base_url('admin/users/' . (int)$u['id'] . '/edit') ?>" aria-label="Edit <?= esc($u['name'], 'attr') ?>"><i class="bx bx-edit"></i></a>
                 <form method="post" action="<?= base_url('admin/users/' . (int)$u['id'] . '/toggle') ?>">
                     <?= csrf_field() ?>
                     <button type="submit" class="pp-btn pp-btn--ghost pp-btn--sm"><?= (int)$u['is_active'] === 1 ? 'Disable' : 'Enable' ?></button>
                 </form>
+                <?php if (empty($authored[(int)$u['id']])): ?>
+                <form method="post" action="<?= base_url('admin/users/' . (int)$u['id'] . '/delete') ?>" onsubmit="return confirm('Delete <?= esc($u['email'], 'js') ?>?')">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="pp-btn pp-btn--ghost pp-btn--sm pp-btn--danger">Delete</button>
+                </form>
+                <?php endif; ?>
                 <?php endif; ?>
             </td>
         </tr>

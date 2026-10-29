@@ -245,3 +245,13 @@ a.pp-card:hover, a.pp-card:focus-visible {
 .whpc-login__or { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; color: var(--whpc-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; }
 .whpc-login__or::before, .whpc-login__or::after { content: ""; flex: 1; border-top: 1px solid var(--whpc-border, #d9e0e6); }
 #microsoftSignIn .bx { font-size: 1.15em; vertical-align: -2px; margin-right: 4px; }
+
+.pp-btn--danger { color: #b3261e; border-color: #e6b8b4; }
+.pp-btn--danger:hover { background: #fbeceb; }
+
+/* Breadcrumb trail above every page but Home. */
+.pp-crumbs ol { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 14px; padding: 0; font-size: 0.92rem; color: var(--whpc-muted); }
+.pp-crumbs li + li::before { content: "\203A"; margin: 0 6px 0 2px; color: var(--whpc-muted); }
+.pp-crumbs a { color: var(--whpc-slate); text-decoration: none; font-weight: 600; }
+.pp-crumbs a:hover { text-decoration: underline; }
+.pp-crumbs [aria-current] { color: var(--whpc-navy, #243746); }

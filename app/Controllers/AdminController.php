@@ -19,13 +19,88 @@ class AdminController extends BaseController
   public function users()
   {
     return view('pages/admin/users', [
-      'title' => 'Accounts',
+      'title' => 'Portal users',
+      'crumbs' => [['Home', '/'], ['Portal users', null]],
       'users' => (new UserModel())->roster(),
       'pmcs' => (new PmcModel())->active(),
       'errors' => session()->getFlashdata('errors') ?: [],
+      'authored' => (new StaffChangeModel())->countByUser(),
     ]);
   }
   public function userStore()
+  {
+    $in = $this->userInput(null);
+    if ($in['errors'] !== [])
+    {
+      return redirect()->back()->withInput()->with('errors', $in['errors']);
+    }
+    $id = (new UserModel())->insert($in['values'] + ['is_admin' => 0, 'is_active' => 1], true);
+    ActivityLogModel::record('admin.user_added', (int)session('user')['id'], (string)session('user')['email'], $in['values']['email'] . ' #' . $id);
+    return redirect()->to('/admin/users')->with('success', $in['values']['email'] . ' can now sign in.');
+  }
+  public function userEdit(int $id)
+  {
+    $u = $this->editable($id);
+    return view('pages/admin/user-form', [
+      'title' => 'Edit ' . $u['name'],
+      'crumbs' => [['Home', '/'], ['Portal users', 'admin/users'], ['Edit ' . $u['name'], null]],
+      'user' => $u,
+      'pmcs' => (new PmcModel())->active(),
+      'v' => old('email') !== null ? ['name' => old('name'), 'email' => old('email'), 'pmc_id' => old('pmc_id')] : $u,
+      'errors' => session()->getFlashdata('errors') ?: [],
+    ]);
+  }
+  public function userUpdate(int $id)
+  {
+    $u = $this->editable($id);
+    $in = $this->userInput($u);
+    if ($in['errors'] !== [])
+    {
+      return redirect()->back()->withInput()->with('errors', $in['errors']);
+    }
+    $diff = array_filter($in['values'], static fn($v, string $k): bool => (string)$v !== (string)($u[$k] ?? ''), ARRAY_FILTER_USE_BOTH);
+    if ($diff !== [])
+    {
+      (new UserModel())->update($id, $diff);
+      ActivityLogModel::record('admin.user_edited', (int)session('user')['id'], (string)session('user')['email'], $u['email'] . ' ' . implode(',', array_keys($diff)));
+    }
+    return redirect()->to('/admin/users')->with('success', $in['values']['name'] . ' is updated.');
+  }
+  public function userDelete(int $id)
+  {
+    $u = $this->editable($id);
+    $n = (new StaffChangeModel())->where('user_id', $id)->countAllResults();
+    if ($n > 0)
+    {
+      return redirect()->to('/admin/users')->with('error', $u['name'] . ' has made roster changes, which keep their author. Disable the account instead.');
+    }
+    $db = db_connect();
+    $db->table('login_codes')->where('user_id', $id)->delete();
+    (new UserModel())->delete($id);
+    ActivityLogModel::record('admin.user_deleted', (int)session('user')['id'], (string)session('user')['email'], $u['email'] . ' #' . $id);
+    return redirect()->to('/admin/users')->with('success', $u['email'] . ' is deleted.');
+  }
+  /** The account $id if this screen may change it; configured admins and oneself are not. */
+  private function editable(int $id): array
+  {
+    $u = (new UserModel())->find($id);
+    if (!$u)
+    {
+      throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+    }
+    if ((int)$u['id'] === (int)session('user')['id'] || (new Accounts())->isConfiguredAdmin((string)$u['email']))
+    {
+      throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+    }
+    return $u;
+  }
+  /**
+   * The posted name, email and company, checked. $current is the account being edited,
+   * or null for a new one.
+   *
+   * @return array{values:array{name:string,email:string,pmc_id:?int}, errors:array<string,string>}
+   */
+  private function userInput(?array $current): array
   {
     $email = mb_strtolower(trim((string)$this->request->getPost('email')));
     $name = trim((string)$this->request->getPost('name'));
@@ -44,22 +119,19 @@ class AdminController extends BaseController
       $errors['name'] = 'Enter the person\'s name.';
     }
     $pmc = $pmcId > 0 ? (new PmcModel())->find($pmcId) : null;
-    if ($pmc === null)
+    if ($pmc === null && (int)($current['is_admin'] ?? 0) !== 1)
     {
       $errors['pmc_id'] = 'Choose the management company.';
     }
-    $users = new UserModel();
-    if ($errors === [] && $users->where('email', $email)->first())
+    if (!isset($errors['email']))
     {
-      $errors['email'] = 'That address already has an account.';
+      $dup = (new UserModel())->where('email', $email)->first();
+      if ($dup && (int)$dup['id'] !== (int)($current['id'] ?? 0))
+      {
+        $errors['email'] = 'That address already has an account.';
+      }
     }
-    if ($errors !== [])
-    {
-      return redirect()->back()->withInput()->with('errors', $errors);
-    }
-    $id = $users->insert(['email' => $email, 'name' => $name, 'pmc_id' => (int)$pmc['id'], 'is_admin' => 0, 'is_active' => 1], true);
-    ActivityLogModel::record('admin.user_added', (int)session('user')['id'], (string)session('user')['email'], $email . ' #' . $id);
-    return redirect()->to('/admin/users')->with('success', $email . ' can now sign in.');
+    return ['values' => ['name' => $name, 'email' => $email, 'pmc_id' => $pmc === null ? null : (int)$pmc['id']], 'errors' => $errors];
   }
   public function userToggle(int $id)
   {
@@ -91,6 +163,7 @@ class AdminController extends BaseController
     $last = (new PropertyModel())->selectMax('synced_at')->first();
     return view('pages/admin/pmcs', [
       'title' => 'Management companies',
+      'crumbs' => [['Home', '/'], ['Management companies', null]],
       'pmcs' => (new PmcModel())->orderBy('name')->findAll(),
       'propCounts' => $propCounts,
       'staffCounts' => $staffCounts,
@@ -122,6 +195,7 @@ class AdminController extends BaseController
   {
     return view('pages/admin/changes', [
       'title' => 'Recent roster changes',
+      'crumbs' => [['Home', '/'], ['Recent changes', null]],
       'entries' => (new StaffChangeModel())->recent(null, 200),
     ]);
   }

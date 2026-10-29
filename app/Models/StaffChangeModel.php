@@ -29,4 +29,14 @@ class StaffChangeModel extends Model
     }
     return $q->orderBy('staff_changes.id', 'DESC')->findAll($limit);
   }
+  /** @return array<int,int> user id => roster changes they made */
+  public function countByUser(): array
+  {
+    $out = [];
+    foreach ($this->select('user_id, COUNT(*) AS n')->where('user_id IS NOT NULL')->groupBy('user_id')->findAll() as $r)
+    {
+      $out[(int)$r['user_id']] = (int)$r['n'];
+    }
+    return $out;
+  }
 }

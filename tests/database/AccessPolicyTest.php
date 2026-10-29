@@ -210,4 +210,59 @@ final class AccessPolicyTest extends CIUnitTestCase
     $this->withSession(['user' => $admin])->post('admin/users/' . $new . '/toggle');
     $this->assertSame(0, (int)$users->find($new)['is_active']);
   }
+  public function testPortalUsersCanBeEditedAndDeletedWithinLimits(): void
+  {
+    $admin = ['id' => 999, 'email' => 'joe@whpc.com', 'name' => 'Joe Carpenter', 'pmc_id' => null, 'pmc_name' => '', 'is_admin' => true];
+    $pmcs = new \App\Models\PmcModel();
+    $gf = $pmcs->idFor('Goldfinch Living');
+    $other = $pmcs->idFor('Other Co');
+    $users = new UserModel();
+    $jane = (int)$users->insert(['email' => 'jane@pmc.test', 'name' => 'Jane Doe', 'pmc_id' => $gf], true);
+    $pat = (int)$users->insert(['email' => 'pat@pmc.test', 'name' => 'Pat Author', 'pmc_id' => $gf], true);
+    $brian = (int)$users->insert(['email' => 'brian@whpc.com', 'name' => 'Brian', 'pmc_id' => null, 'is_admin' => 1], true);
+    (new \App\Models\StaffChangeModel())->insert(['staff_id' => 1, 'pmc_id' => $gf, 'user_id' => $pat, 'action' => 'added', 'changes' => '{}']);
+
+    $page = $this->withSession(['user' => $admin])->get('admin/users');
+    $page->assertSee('Portal users');
+    $page->assertSeeElement('.pp-crumbs');
+    $body = (string)$page->response()->getBody();
+    $this->assertStringContainsString('admin/users/' . $jane . '/delete', $body);
+    $this->assertStringNotContainsString('admin/users/' . $pat . '/delete', $body, 'an author of roster changes is not offered Delete');
+    $this->assertStringNotContainsString('admin/users/' . $brian . '/edit', $body, 'a configured admin is not offered Edit');
+
+    $edit = $this->withSession(['user' => $admin])->get('admin/users/' . $jane . '/edit');
+    $edit->assertStatus(200);
+    $edit->assertSee('Edit Jane Doe');
+    $edit->assertSeeElement('#saveUser');
+    $this->withSession(['user' => $admin])->post('admin/users/' . $jane, ['name' => 'Jane Dough', 'email' => 'Jane.D@pmc.test', 'pmc_id' => $other])->assertRedirectTo('/admin/users');
+    $row = $users->find($jane);
+    $this->assertSame(['Jane Dough', 'jane.d@pmc.test', $other], [$row['name'], $row['email'], (int)$row['pmc_id']]);
+    $this->withSession(['user' => $admin])->post('admin/users/' . $jane, ['name' => 'Jane', 'email' => 'pat@pmc.test', 'pmc_id' => $gf]);
+    $this->assertSame('jane.d@pmc.test', $users->find($jane)['email'], 'another account\'s address is refused');
+    $this->withSession(['user' => $admin])->post('admin/users/' . $jane, ['name' => 'Jane', 'email' => 'jane@whpc.com', 'pmc_id' => $gf]);
+    $this->assertSame('jane.d@pmc.test', $users->find($jane)['email'], 'a WHPC address is refused');
+    $this->withSession(['user' => $admin])->post('admin/users/' . $jane, ['name' => 'Jane', 'email' => 'jane.d@pmc.test']);
+    $this->assertSame($other, (int)$users->find($jane)['pmc_id'], 'no company is refused');
+
+    foreach ([$brian, 999] as $locked)
+    {
+      try
+      {
+        $this->withSession(['user' => $admin])->get('admin/users/' . $locked . '/edit');
+        $this->fail("account {$locked} was editable");
+      }
+      catch (\CodeIgniter\Exceptions\PageNotFoundException)
+      {
+      }
+    }
+
+    $this->withSession(['user' => $admin])->post('admin/users/' . $pat . '/delete')->assertRedirectTo('/admin/users');
+    $this->assertNotNull($users->find($pat), 'an author of roster changes stays');
+    (new \App\Libraries\LoginCode())->issue(['id' => $jane, 'email' => 'jane.d@pmc.test', 'name' => 'Jane']);
+    $this->withSession(['user' => $admin])->post('admin/users/' . $jane . '/delete')->assertRedirectTo('/admin/users');
+    $this->assertNull($users->find($jane));
+    $this->assertSame(0, (new \App\Models\LoginCodeModel())->where('user_id', $jane)->countAllResults());
+    $this->assertCount(1, $this->actions('admin.user_deleted'));
+    $this->assertCount(1, $this->actions('admin.user_edited'));
+  }
 }

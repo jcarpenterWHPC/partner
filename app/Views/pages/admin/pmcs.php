@@ -16,7 +16,6 @@
     </div>
     <div class="pp-actions">
         <form method="post" action="<?= base_url('admin/pmcs/sync') ?>"><?= csrf_field() ?><button type="submit" class="pp-btn pp-btn--primary" id="syncNow"><i class="bx bx-refresh"></i> Sync from Assets</button></form>
-        <a class="pp-btn pp-btn--ghost" href="<?= base_url('/') ?>">Home</a>
     </div>
 </div>
 <?php if (session()->getFlashdata('success')): ?>
@@ -24,7 +23,7 @@
 <?php endif; ?>
 <div class="pp-tablewrap">
 <table class="pp-table" id="pmcTable">
-    <thead><tr><th>Company</th><th>Properties</th><th>Staff on roster</th><th>Accounts</th><th></th></tr></thead>
+    <thead><tr><th>Company</th><th>Properties</th><th>Staff on roster</th><th>Portal users</th><th></th></tr></thead>
     <tbody>
     <?php if (!$pmcs): ?><tr><td colspan="5" class="pp-empty">Nothing synced yet.</td></tr><?php endif; ?>
     <?php foreach ($pmcs as $p): ?>

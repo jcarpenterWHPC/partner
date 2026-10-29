@@ -18,7 +18,7 @@ $chosen = array_map('strval', $v['properties'] ?? []);
         <h1 class="pp-h1"><?= $person ? 'Edit ' . esc($person['name']) : 'Add a person' ?></h1>
         <p class="pp-sub"><?= esc($pmc['name']) ?></p>
     </div>
-    <div class="pp-actions"><a class="pp-btn pp-btn--ghost" href="<?= base_url('roster') ?>">Back to the roster</a></div>
+    
 </div>
 <?php if ($errors): ?>
     <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span>Check the highlighted fields.</span></div>

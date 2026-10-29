@@ -35,6 +35,13 @@
     <?php endif; ?>
 </header>
 <main class="pp-main">
+    <?php if (!empty($crumbs)): ?>
+    <nav class="pp-crumbs" aria-label="Breadcrumb"><ol>
+        <?php foreach ($crumbs as $i => [$label, $to]): ?>
+        <li><?php if ($to !== null && $i < count($crumbs) - 1): ?><a href="<?= base_url($to) ?>"><?= esc($label) ?></a><?php else: ?><span aria-current="page"><?= esc($label) ?></span><?php endif; ?></li>
+        <?php endforeach; ?>
+    </ol></nav>
+    <?php endif; ?>
     <?php if (session()->getFlashdata('error')): ?>
         <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
     <?php endif; ?>

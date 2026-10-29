@@ -32,6 +32,9 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function (RouteC
   $routes->get('users', 'AdminController::users');
   $routes->post('users', 'AdminController::userStore');
   $routes->post('users/(:num)/toggle', 'AdminController::userToggle/$1');
+  $routes->get('users/(:num)/edit', 'AdminController::userEdit/$1');
+  $routes->post('users/(:num)', 'AdminController::userUpdate/$1');
+  $routes->post('users/(:num)/delete', 'AdminController::userDelete/$1');
   $routes->get('pmcs', 'AdminController::pmcs');
   $routes->post('pmcs/sync', 'AdminController::sync');
   $routes->get('changes', 'AdminController::changes');
