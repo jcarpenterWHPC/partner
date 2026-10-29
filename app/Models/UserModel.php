@@ -11,10 +11,25 @@ class UserModel extends Model
   protected $primaryKey = 'id';
   protected $returnType = 'array';
   protected $useTimestamps = true;
-  protected $allowedFields = ['email', 'name', 'company', 'is_admin', 'is_active', 'last_login_at'];
+  protected $allowedFields = ['email', 'name', 'pmc_id', 'is_admin', 'is_active', 'last_login_at'];
   public function activeByEmail(string $email): ?array
   {
-    $row = $this->where('email', mb_strtolower(trim($email)))->where('is_active', 1)->first();
+    $row = $this->withPmc()->where('users.email', mb_strtolower(trim($email)))->where('users.is_active', 1)->first();
     return $row ?: null;
+  }
+  /** One account with its PMC's name, or null. */
+  public function withPmcById(int $id): ?array
+  {
+    $row = $this->withPmc()->where('users.id', $id)->first();
+    return $row ?: null;
+  }
+  /** Every account with its PMC's name, admins first. */
+  public function roster(): array
+  {
+    return $this->withPmc()->orderBy('users.is_admin', 'DESC')->orderBy('pmcs.name', 'ASC')->orderBy('users.name', 'ASC')->findAll();
+  }
+  private function withPmc(): self
+  {
+    return $this->select('users.*, pmcs.name AS pmc_name')->join('pmcs', 'pmcs.id = users.pmc_id', 'left');
   }
 }

@@ -141,3 +141,6 @@ node_modules/
 /blob-report/
 # www-data's home is this tree on the servers; never let an AWS credentials file in.
 /.aws/
+
+# partner:sync-properties, nightly on prod: the flock file is runtime state.
+writable/sync-properties.lock

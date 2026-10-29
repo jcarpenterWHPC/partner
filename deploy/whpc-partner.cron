@@ -1,0 +1,6 @@
+# Nightly refresh of the PMC and property lists from the intranet's assets table.
+# Installed as /etc/cron.d/whpc-partner on the PRODUCTION box only; the TEST box syncs
+# on demand from Admin → Management companies → Sync from Assets.
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+23 3 * * * ubuntu cd /var/www && /usr/bin/flock -n /var/www/writable/sync-properties.lock /usr/bin/php spark partner:sync-properties >> /var/www/writable/logs/partner-sync.log 2>&1

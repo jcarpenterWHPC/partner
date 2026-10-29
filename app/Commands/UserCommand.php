@@ -9,7 +9,7 @@ use CodeIgniter\CLI\CLI;
 /**
  * Portal accounts from the command line, until there is an admin screen.
  *
- *   php spark partner:user add  jane@pmc.com "Jane Doe" --company "Goldfinch Living" [--admin]
+ *   php spark partner:user add  jane@pmc.com "Jane Doe" --pmc "Goldfinch Living" [--admin]
  *   php spark partner:user list
  *   php spark partner:user disable jane@pmc.com
  *   php spark partner:user enable  jane@pmc.com
@@ -19,8 +19,8 @@ class UserCommand extends BaseCommand
   protected $group = 'App';
   protected $name = 'partner:user';
   protected $description = 'Add, list, enable or disable portal accounts.';
-  protected $usage = 'partner:user <add|list|enable|disable> [email] ["Name"] [--company "PMC"] [--admin]';
-  protected $options = ['--company' => 'The property management company (add).', '--admin' => 'Make the account a WHPC admin (add).'];
+  protected $usage = 'partner:user <add|list|enable|disable> [email] ["Name"] [--pmc "Company"] [--admin]';
+  protected $options = ['--pmc' => 'The property management company, as Assets names it (add).', '--admin' => 'Make the account a WHPC admin (add).'];
   public function run(array $params)
   {
     $users = new UserModel();
@@ -28,8 +28,7 @@ class UserCommand extends BaseCommand
     $email = mb_strtolower(trim((string)($params[1] ?? '')));
     if ($what === 'list')
     {
-      $rows = $users->orderBy('company')->orderBy('email')->findAll();
-      CLI::table(array_map(static fn(array $u): array => [$u['id'], $u['email'], $u['name'], $u['company'], $u['is_admin'] ? 'admin' : '', $u['is_active'] ? 'active' : 'disabled', (string)$u['last_login_at']], $rows), ['id', 'email', 'name', 'company', 'role', 'state', 'last sign-in']);
+      CLI::table(array_map(static fn(array $u): array => [$u['id'], $u['email'], $u['name'], (string)($u['pmc_name'] ?? ''), $u['is_admin'] ? 'admin' : '', $u['is_active'] ? 'active' : 'disabled', (string)$u['last_login_at']], $users->roster()), ['id', 'email', 'name', 'PMC', 'role', 'state', 'last sign-in']);
       return EXIT_SUCCESS;
     }
     if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false)
@@ -44,10 +43,17 @@ class UserCommand extends BaseCommand
         CLI::error("{$email} already exists.");
         return EXIT_ERROR;
       }
+      $pmcName = trim((string)(CLI::getOption('pmc') ?? ''));
+      $pmc = $pmcName === '' ? null : (new \App\Models\PmcModel())->byName($pmcName);
+      if ($pmcName !== '' && $pmc === null)
+      {
+        CLI::error("No PMC named \"{$pmcName}\". Run partner:sync-properties, or check the spelling against Assets.");
+        return EXIT_ERROR;
+      }
       $id = $users->insert([
         'email' => $email,
         'name' => trim((string)($params[2] ?? '')),
-        'company' => trim((string)(CLI::getOption('company') ?? '')),
+        'pmc_id' => $pmc === null ? null : (int)$pmc['id'],
         'is_admin' => CLI::getOption('admin') !== null ? 1 : 0,
         'is_active' => 1,
       ], true);

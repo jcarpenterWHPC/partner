@@ -26,7 +26,7 @@
     <?php if ($u = session('user')): ?>
     <nav class="pp-topbar__user" aria-label="Account">
         <span class="pp-topbar__name"><?= esc($u['name'] ?: $u['email']) ?></span>
-        <?php if ($u['company'] !== ''): ?><span class="pp-topbar__company"><?= esc($u['company']) ?></span><?php endif; ?>
+        <?php if (($u['pmc_name'] ?? '') !== ''): ?><span class="pp-topbar__company"><?= esc($u['pmc_name']) ?></span><?php endif; ?>
         <form method="post" action="<?= base_url('logout') ?>">
             <?= csrf_field() ?>
             <button type="submit" class="pp-btn pp-btn--ghost">Sign out</button>

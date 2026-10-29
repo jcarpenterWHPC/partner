@@ -1,0 +1,73 @@
+<?php
+/**
+ * @var list<array>          $users
+ * @var list<array>          $pmcs
+ * @var array<string,string> $errors
+ */
+$err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fielderror">' . esc($errors[$f]) . '</div>' : '';
+?>
+<?= $this->extend('layouts/main') ?>
+<?= $this->section('content') ?>
+<div class="pp-pagehead">
+    <div><h1 class="pp-h1">Accounts</h1></div>
+    <div class="pp-actions"><a class="pp-btn pp-btn--ghost" href="<?= base_url('/') ?>">Home</a></div>
+</div>
+<?php if (session()->getFlashdata('success')): ?>
+    <div class="whpc-alert whpc-alert--success" role="status"><i class="bx bx-check-circle"></i><span><?= esc(session()->getFlashdata('success')) ?></span></div>
+<?php endif; ?>
+<form method="post" action="<?= base_url('admin/users') ?>" class="pp-form pp-form--wide pp-panel" id="userForm">
+    <?= csrf_field() ?>
+    <div class="pp-grid">
+        <div class="pp-field">
+            <label class="pp-label" for="u_name">Name</label>
+            <input class="pp-input" id="u_name" name="name" value="<?= esc(old('name', ''), 'attr') ?>" maxlength="255" required>
+            <?= $err('name') ?>
+        </div>
+        <div class="pp-field">
+            <label class="pp-label" for="u_email">Work email</label>
+            <input class="pp-input" id="u_email" name="email" type="email" value="<?= esc(old('email', ''), 'attr') ?>" maxlength="255" required>
+            <?= $err('email') ?>
+        </div>
+        <div class="pp-field">
+            <label class="pp-label" for="u_pmc">Management company</label>
+            <select class="pp-input pp-input--select" id="u_pmc" name="pmc_id">
+                <option value="">— WHPC —</option>
+                <?php foreach ($pmcs as $p): ?>
+                <option value="<?= (int)$p['id'] ?>" <?= (string)old('pmc_id', '') === (string)$p['id'] ? 'selected' : '' ?>><?= esc($p['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <?= $err('pmc_id') ?>
+        </div>
+        <div class="pp-field pp-field--check">
+            <label class="pp-check"><input type="checkbox" name="is_admin" value="1" <?= old('is_admin') ? 'checked' : '' ?>> <span>WHPC admin</span></label>
+        </div>
+    </div>
+    <div class="pp-actions pp-actions--form">
+        <button type="submit" class="pp-btn pp-btn--primary" id="addUser">Add account</button>
+    </div>
+</form>
+<div class="pp-tablewrap">
+<table class="pp-table" id="usersTable">
+    <thead><tr><th>Name</th><th>Email</th><th>Company</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead>
+    <tbody>
+    <?php foreach ($users as $u): ?>
+        <tr class="<?= (int)$u['is_active'] === 1 ? '' : 'is-disabled' ?>" data-id="<?= (int)$u['id'] ?>">
+            <td><strong><?= esc($u['name']) ?></strong></td>
+            <td><?= esc($u['email']) ?></td>
+            <td><?= esc($u['pmc_name'] ?: 'WHPC') ?></td>
+            <td><?= (int)$u['is_admin'] === 1 ? 'Admin' : 'Partner' ?></td>
+            <td><?= esc((string)$u['last_login_at']) ?></td>
+            <td class="pp-rowactions">
+                <?php if ((int)$u['id'] !== (int)session('user')['id']): ?>
+                <form method="post" action="<?= base_url('admin/users/' . (int)$u['id'] . '/toggle') ?>">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="pp-btn pp-btn--ghost pp-btn--sm"><?= (int)$u['is_active'] === 1 ? 'Disable' : 'Enable' ?></button>
+                </form>
+                <?php endif; ?>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+    </tbody>
+</table>
+</div>
+<?= $this->endSection() ?>

@@ -35,6 +35,23 @@ WHPC WAF). TLS ends at CloudFront; the boxes serve plain HTTP on :80 and read
 - Never commit `.env`; never print or log a secret value. Mail goes out through the SES
   API as the instance role (From `noreply@whpc.com`); there are no SMTP credentials.
 
+## What is in it
+
+- **Sign-in** (`Auth`): emailed one-time code + one-click link. Accounts are made by WHPC
+  admins (`/admin/users`, or `php spark partner:user`); a PMC user belongs to one PMC.
+- **Staff roster** (`RosterController`, `App\Libraries\Roster`): each PMC keeps its own
+  people — name, position (Config\Partner::$positions, named as Assets' contact roles),
+  title, email, phones, the properties they cover, start and end date. Nothing is deleted:
+  leaving is an end date, and every change is a row in `staff_changes` (field diffs), which
+  is what will later update Assets' contacts. A user only ever reaches their own PMC's
+  people; admins pick a PMC.
+- **Properties** come from the intranet: `partner:sync-properties` reads `home.assets`
+  through the read-only `home` database group (user `partner_home_ro`, SELECT only) and
+  fills `pmcs` + `properties`. Nightly on prod (`deploy/whpc-partner.cron`) and from the
+  admin page. A property that disappears is retired, not deleted.
+- **Admin** (`AdminController`, filter `admin`): accounts, management companies + sync,
+  recent changes.
+
 ## Sign-in
 
 Passwordless. `App\Libraries\LoginCode` emails a numeric code and a one-click link, stores

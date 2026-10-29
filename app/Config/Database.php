@@ -158,6 +158,35 @@ class Database extends Config
     //    ];
 
     /**
+     * A read-only window on the intranet's `assets` table (user partner_home_ro, SELECT
+     * only), filled from the secret as `database.home.*`. The portal's property list is
+     * synced from it; nothing is ever written through it.
+     *
+     * @var array<string, mixed>
+     */
+    public array $home = [
+        'DSN'          => '',
+        'hostname'     => '',
+        'username'     => '',
+        'password'     => '',
+        'database'     => 'home',
+        'DBDriver'     => 'MySQLi',
+        'DBPrefix'     => '',
+        'pConnect'     => false,
+        'DBDebug'      => true,
+        'charset'      => 'utf8mb4',
+        'DBCollat'     => 'utf8mb4_general_ci',
+        'swapPre'      => '',
+        'encrypt'      => false,
+        'compress'     => false,
+        'strictOn'     => false,
+        'failover'     => [],
+        'port'         => 3306,
+        'numberNative' => false,
+        'foundRows'    => false,
+    ];
+
+    /**
      * This database connection is used when running PHPUnit database tests.
      *
      * @var array<string, mixed>

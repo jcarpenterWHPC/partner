@@ -44,8 +44,9 @@ final class LoginFlowTest extends CIUnitTestCase
     Services::injectMock('throttler', new Throttler(new MockCache()));
     Mailer::$outbox = [];
     $users = new UserModel();
-    $this->janeId = (int)$users->insert(['email' => 'jane@pmc.test', 'name' => 'Jane Doe', 'company' => 'Goldfinch Living'], true);
-    $users->insert(['email' => 'gone@pmc.test', 'name' => 'Gone Person', 'company' => 'Koru', 'is_active' => 0]);
+    $gf = (new \App\Models\PmcModel())->idFor('Goldfinch Living');
+    $this->janeId = (int)$users->insert(['email' => 'jane@pmc.test', 'name' => 'Jane Doe', 'pmc_id' => $gf], true);
+    $users->insert(['email' => 'gone@pmc.test', 'name' => 'Gone Person', 'pmc_id' => $gf, 'is_active' => 0]);
   }
   protected function tearDown(): void
   {
@@ -101,7 +102,7 @@ final class LoginFlowTest extends CIUnitTestCase
 
     $this->withSession(['login_pending' => $pending])->post('login/verify', ['code' => ' ' . $mail['code'] . ' '])->assertRedirectTo('/');
     $user = session('user');
-    $this->assertSame(['jane@pmc.test', 'Jane Doe', 'Goldfinch Living', false], [$user['email'], $user['name'], $user['company'], $user['is_admin']]);
+    $this->assertSame(['jane@pmc.test', 'Jane Doe', 'Goldfinch Living', false], [$user['email'], $user['name'], $user['pmc_name'], $user['is_admin']]);
     $this->assertNull(session('login_pending'));
     $this->assertNotNull((new UserModel())->find($this->janeId)['last_login_at']);
     $this->assertNotNull((new LoginCodeModel())->latestFor($this->janeId)['consumed_at'], 'the code is spent');
@@ -111,7 +112,7 @@ final class LoginFlowTest extends CIUnitTestCase
     $home->assertStatus(200);
     $home->assertSee('Welcome, Jane');
     $home->assertSeeElement('#cardCapex');
-    $home->assertSee('Coming soon');
+    $home->assertSeeElement('#cardRoster');
   }
   public function testTheLinkSignsInOnceOnly(): void
   {
@@ -167,8 +168,8 @@ final class LoginFlowTest extends CIUnitTestCase
   {
     $this->get('/')->assertRedirectTo('/login?expired=1');
     $this->get('login')->assertStatus(200);
-    $this->withSession(['user' => ['id' => 1, 'email' => 'x@y', 'name' => 'X', 'company' => '', 'is_admin' => false]])->get('login')->assertRedirectTo('/');
-    $this->withSession(['user' => ['id' => 1, 'email' => 'x@y', 'name' => 'X', 'company' => '', 'is_admin' => false]])->post('logout')->assertRedirectTo('/login?signed_out=1');
+    $this->withSession(['user' => ['id' => 1, 'email' => 'x@y', 'name' => 'X', 'pmc_id' => null, 'pmc_name' => '', 'is_admin' => false]])->get('login')->assertRedirectTo('/');
+    $this->withSession(['user' => ['id' => 1, 'email' => 'x@y', 'name' => 'X', 'pmc_id' => null, 'pmc_name' => '', 'is_admin' => false]])->post('logout')->assertRedirectTo('/login?signed_out=1');
     $this->assertCount(1, $this->actions('logout'));
     $this->get('login/verify')->assertRedirectTo('/login');
   }

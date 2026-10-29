@@ -25,6 +25,25 @@ class Partner extends BaseConfig
   public int $requestsPerMinute = 10;
   /** Set false to log outgoing mail instead of sending it. */
   public bool $mailSend = true;
+  /** Database group the property sync reads the intranet's `assets` table through. */
+  public string $assetsGroup = 'home';
   /** Who a partner writes to when they cannot sign in. */
-  public string $supportMail = 'BusinessAnalyst@whpc.com';
+  public string $supportMail = 'BusinessSystems@whpc.com';
+  /**
+   * Positions a roster entry can hold, grouped as the form offers them. The names are
+   * Assets' contact-role names where one exists, so the later sync is a straight mapping.
+   *
+   * @var array<string, list<string>>
+   */
+  public array $positions = [
+    'Property / site management' => ['Site Manager', 'Assistant Manager'],
+    'Maintenance' => ['Maintenance Supervisor', 'Maintenance Technician'],
+    'Regional / portfolio management' => ['Regional Manager', 'Regional Vice President'],
+    'Leasing, compliance and office' => ['Leasing Agent', 'Compliance Specialist', 'Service Coordinator', 'Other'],
+  ];
+  /** @return list<string> every position, flat */
+  public function positionNames(): array
+  {
+    return array_merge(...array_values($this->positions));
+  }
 }

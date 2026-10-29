@@ -90,7 +90,7 @@ class Auth extends BaseController
     $result = (new LoginCode($this->cfg))->verify((int)$pending['user_id'], $code);
     if ($result['ok'])
     {
-      $user = $this->users->find((int)$pending['user_id']);
+      $user = $this->users->withPmcById((int)$pending['user_id']);
       if ($user && (int)$user['is_active'] === 1)
       {
         return $this->establish($user, 'code');
@@ -131,7 +131,7 @@ class Auth extends BaseController
       {
         return redirect()->to('/login/verify')->with('error', 'A code was just sent. You can ask for another in ' . $wait . ' second' . ($wait === 1 ? '' : 's') . '.');
       }
-      $user = $this->users->find((int)$pending['user_id']);
+      $user = $this->users->withPmcById((int)$pending['user_id']);
       if ($user && !$this->issue($user))
       {
         return redirect()->to('/login/verify')->with('error', 'We could not send the email just now. Please try again.');
@@ -148,7 +148,7 @@ class Auth extends BaseController
       return redirect()->to('/login')->with('error', 'Too many attempts. Please wait a minute and try again.');
     }
     $userId = (new LoginCode($this->cfg))->redeem($token);
-    $user = $userId === null ? null : $this->users->find($userId);
+    $user = $userId === null ? null : $this->users->withPmcById($userId);
     if (!$user || (int)$user['is_active'] !== 1)
     {
       ActivityLogModel::record('login.failed', $userId, null, 'bad link');
@@ -175,7 +175,8 @@ class Auth extends BaseController
       'id' => (int)$user['id'],
       'email' => (string)$user['email'],
       'name' => (string)$user['name'],
-      'company' => (string)$user['company'],
+      'pmc_id' => $user['pmc_id'] === null ? null : (int)$user['pmc_id'],
+      'pmc_name' => (string)($user['pmc_name'] ?? ''),
       'is_admin' => (int)$user['is_admin'] === 1,
     ]);
     $this->users->update((int)$user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);

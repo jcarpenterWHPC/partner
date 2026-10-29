@@ -7,10 +7,27 @@
         <span class="pp-card__title">CapEx</span>
         <span class="pp-card__go"><i class="bx bx-right-arrow-alt"></i></span>
     </a>
-    <div class="pp-card pp-card--soon" id="cardPersonnel" aria-disabled="true">
+    <a class="pp-card" href="<?= base_url('roster') ?>" id="cardRoster">
         <span class="pp-card__icon"><i class="bx bx-id-card"></i></span>
-        <span class="pp-card__title">Personnel changes</span>
-        <span class="pp-badge">Coming soon</span>
-    </div>
+        <span class="pp-card__title">Staff roster</span>
+        <span class="pp-card__go"><i class="bx bx-right-arrow-alt"></i></span>
+    </a>
+    <?php if (!empty($user['is_admin'])): ?>
+    <a class="pp-card" href="<?= base_url('admin/users') ?>" id="cardUsers">
+        <span class="pp-card__icon"><i class="bx bx-user-plus"></i></span>
+        <span class="pp-card__title">Accounts</span>
+        <span class="pp-card__go"><i class="bx bx-right-arrow-alt"></i></span>
+    </a>
+    <a class="pp-card" href="<?= base_url('admin/pmcs') ?>" id="cardPmcs">
+        <span class="pp-card__icon"><i class="bx bx-buildings"></i></span>
+        <span class="pp-card__title">Management companies</span>
+        <span class="pp-card__go"><i class="bx bx-right-arrow-alt"></i></span>
+    </a>
+    <a class="pp-card" href="<?= base_url('admin/changes') ?>" id="cardChanges">
+        <span class="pp-card__icon"><i class="bx bx-history"></i></span>
+        <span class="pp-card__title">Recent changes</span>
+        <span class="pp-card__go"><i class="bx bx-right-arrow-alt"></i></span>
+    </a>
+    <?php endif; ?>
 </div>
 <?= $this->endSection() ?>

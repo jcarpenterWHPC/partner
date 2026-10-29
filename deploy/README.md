@@ -33,6 +33,13 @@ generated a deploy key and left notes in `/root/WHPC-DEPLOY-NEXT-STEPS.txt`.
 5. `curl -sI http://localhost/` → 302 to /login; `curl -s http://localhost/healthcheck.html` → ok.
 6. First account: `sudo -u ubuntu php /var/www/spark partner:user add you@whpc.com "Your Name" --admin`.
 
+## After the first deploy
+
+```sh
+sudo -u ubuntu php /var/www/spark partner:sync-properties     # PMCs + properties from Assets
+sudo install -m 644 /var/www/deploy/whpc-partner.cron /etc/cron.d/whpc-partner   # PROD only: nightly sync
+```
+
 ## Later deploys
 
 ```sh
