@@ -144,3 +144,6 @@ node_modules/
 
 # partner:sync-properties, nightly on prod: the flock file is runtime state.
 writable/sync-properties.lock
+
+# Local SQLite runs (deploy/README.md): never a real database.
+writable/*.db
