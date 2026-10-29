@@ -1,0 +1,11 @@
+{
+  "name": "whpc-partner-e2e",
+  "private": true,
+  "description": "Playwright end-to-end tests for the WHPC Partner Portal (the app itself is PHP).",
+  "scripts": {
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0"
+  }
+}
