@@ -1,0 +1,1042 @@
+/* ============================================================
+   WHPC Intranet — Brand Design System
+   Wisconsin Housing Preservation Corp.
+   Palette + components for login & dashboard.
+   Brand colors sourced from whpc.com:
+     slate-blue #4E738A · navy #243746 · orange #FF8300
+   Typeface: Acumin Pro (brand) → Source Sans 3 (free equivalent)
+   ============================================================ */
+
+:root {
+    --whpc-navy:        #243746;
+    --whpc-navy-deep:   #1b2a36;
+    --whpc-slate:       #4E738A;
+    --whpc-slate-dark:  #3d5d70;
+    --whpc-slate-soft:  #eef2f5;
+    --whpc-orange:      #FF8300;
+    --whpc-orange-dark: #e57500;
+    --whpc-cream:       #EFE7D2;
+    --whpc-sand:        #F6F2E6;
+    --whpc-ink:         #1f2d38;
+    --whpc-muted:       #6b7c88;
+    --whpc-line:        #e3e8ec;
+    --whpc-bg:          #f4f6f8;
+
+    /* Role tokens. Every signed-in surface paints through these so the dark
+       theme has one place to flip and print has one place to put back; their
+       light values are exactly the literals the rules below used to name. */
+    --whpc-surface:     #fff;
+    --whpc-surface-2:   #f8f8fb;
+    --whpc-heading:     #243746;
+    --whpc-link:        #4E738A;
+    --whpc-link-hover:  #3d5d70;
+
+    --whpc-shadow-sm: 0 1px 2px rgba(36,55,70,.06), 0 1px 3px rgba(36,55,70,.08);
+    --whpc-shadow-md: 0 4px 12px rgba(36,55,70,.08), 0 2px 6px rgba(36,55,70,.06);
+    --whpc-shadow-lg: 0 24px 48px rgba(27,42,54,.18);
+    --whpc-radius: 14px;
+    --whpc-font: 'Source Sans 3', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+/* ============================================================
+   LOGIN — split-screen brand layout
+   ============================================================ */
+
+.whpc-login-body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--whpc-font);
+    color: var(--whpc-ink);
+    background: var(--whpc-bg);
+    -webkit-font-smoothing: antialiased;
+}
+
+.whpc-login {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    min-height: 100vh;
+}
+
+/* --- Left brand panel --- */
+.whpc-login__brand {
+    position: relative;
+    overflow: hidden;
+    padding: 56px 64px;
+    color: #fff;
+    background:
+        radial-gradient(1200px 600px at 100% 0%, rgba(255,131,0,.16), transparent 55%),
+        linear-gradient(150deg, var(--whpc-navy) 0%, var(--whpc-slate-dark) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Oversized keyhole watermark */
+.whpc-login__keyhole {
+    position: absolute;
+    right: -120px;
+    bottom: -90px;
+    width: 460px;
+    height: auto;
+    opacity: .10;
+    pointer-events: none;
+    transform: rotate(-8deg);
+}
+
+.whpc-login__brand-logo {
+    height: 96px;
+    width: auto;
+    align-self: flex-start; /* prevent flex column from stretching the image */
+    position: relative;
+    z-index: 1;
+}
+
+.whpc-login__brand-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 440px;
+}
+
+.whpc-login__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--whpc-orange);
+    margin-bottom: 20px;
+}
+.whpc-login__eyebrow i { font-size: 1.3rem; }
+
+.whpc-login__headline {
+    font-size: 2.35rem;
+    line-height: 1.12;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    margin: 0 0 16px;
+}
+
+.whpc-login__mission {
+    font-size: 1.06rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,.82);
+    margin: 0;
+}
+
+.whpc-login__brand-footer {
+    position: relative;
+    z-index: 1;
+    font-size: .85rem;
+    color: rgba(255,255,255,.6);
+}
+
+/* --- Right sign-in panel --- */
+.whpc-login__panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 40px;
+}
+
+.whpc-login__card {
+    width: 100%;
+    max-width: 400px;
+}
+
+.whpc-login__card-logo {
+    height: 56px;
+    width: auto;
+    margin-bottom: 30px;
+    display: none; /* shown only on small screens when brand panel hides */
+}
+
+.whpc-login__title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin: 0 0 6px;
+    color: var(--whpc-navy);
+}
+
+.whpc-login__subtitle {
+    font-size: .98rem;
+    color: var(--whpc-muted);
+    margin: 0 0 30px;
+}
+
+.whpc-sso-btn {
+    width: 100%;
+    border: 1px solid var(--whpc-line);
+    background: #fff;
+    border-radius: 12px;
+    padding: 15px 18px;
+    font-family: inherit;
+    font-size: .98rem;
+    font-weight: 600;
+    color: var(--whpc-ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: border-color .18s, box-shadow .18s, transform .18s;
+}
+
+.whpc-sso-btn:hover {
+    border-color: var(--whpc-slate);
+    box-shadow: var(--whpc-shadow-md);
+    transform: translateY(-1px);
+}
+
+.whpc-sso-btn__icon { width: 20px; height: 20px; flex-shrink: 0; }
+
+.whpc-login__help {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid var(--whpc-line);
+    font-size: .86rem;
+    color: var(--whpc-muted);
+    line-height: 1.5;
+}
+.whpc-login__help a { color: var(--whpc-slate); font-weight: 600; text-decoration: none; }
+.whpc-login__help a:hover { text-decoration: underline; }
+
+/* ---- Off-site passcode (OTP) step-up ---- */
+.whpc-otp-form { margin: 0; }
+
+.whpc-otp-input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--whpc-line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-family: inherit;
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: .5em;
+    text-align: center;
+    color: var(--whpc-navy);
+    background: #fff;
+    transition: border-color .18s, box-shadow .18s;
+}
+.whpc-otp-input::placeholder { color: #c7d0d7; letter-spacing: .5em; font-weight: 600; }
+.whpc-otp-input:focus {
+    outline: none;
+    border-color: var(--whpc-slate);
+    box-shadow: 0 0 0 3px rgba(78,115,138,.18);
+}
+
+.whpc-otp-meta {
+    margin: 12px 0 20px;
+    font-size: .86rem;
+    color: var(--whpc-muted);
+    text-align: center;
+}
+
+.whpc-otp-remember {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 0 20px;
+    font-size: .9rem;
+    color: var(--whpc-ink);
+    cursor: pointer;
+}
+.whpc-otp-remember input { width: 16px; height: 16px; accent-color: var(--whpc-slate); cursor: pointer; }
+
+.whpc-otp-submit {
+    width: 100%;
+    border: 0;
+    background: var(--whpc-navy);
+    color: #fff;
+    border-radius: 12px;
+    padding: 15px 18px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background .18s, box-shadow .18s, transform .18s;
+}
+.whpc-otp-submit:hover { background: var(--whpc-navy-deep); box-shadow: var(--whpc-shadow-md); transform: translateY(-1px); }
+
+.whpc-otp-resend {
+    margin: 20px 0 0;
+    text-align: center;
+    font-size: .9rem;
+    color: var(--whpc-muted);
+}
+.whpc-otp-resend button {
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    color: var(--whpc-slate);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+.whpc-otp-resend button:hover { text-decoration: underline; }
+.whpc-otp-resend button:disabled { color: var(--whpc-muted); font-weight: 500; cursor: default; text-decoration: none; }
+
+.whpc-otp-back { margin-top: 22px; text-align: center; font-size: .86rem; }
+.whpc-otp-back a { color: var(--whpc-muted); text-decoration: none; }
+.whpc-otp-back a:hover { color: var(--whpc-slate); text-decoration: underline; }
+
+.whpc-alert {
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-size: .9rem;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.whpc-alert--error {
+    color: #8a2b2b;
+    background: #fdecec;
+    border: 1px solid #f6cccc;
+}
+.whpc-alert--info {
+    color: #243746;
+    background: #eef3f6;
+    border: 1px solid #cfdde5;
+}
+
+/* --- Responsive: collapse to single column --- */
+@media (max-width: 860px) {
+    .whpc-login { grid-template-columns: 1fr; }
+    .whpc-login__brand { display: none; }
+    .whpc-login__card-logo { display: block; }
+    .whpc-login__panel { padding: 40px 24px; min-height: 100vh; }
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+
+.whpc-dash { max-width: 1180px; }
+
+/* Welcome header */
+.whpc-welcome {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--whpc-radius);
+    padding: 30px 34px;
+    margin-bottom: 26px;
+    color: #fff;
+    background:
+        radial-gradient(900px 400px at 100% -20%, rgba(255,131,0,.18), transparent 60%),
+        linear-gradient(135deg, var(--whpc-navy) 0%, var(--whpc-slate-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+.whpc-welcome__keyhole {
+    position: absolute;
+    right: 28px;
+    bottom: -60px;
+    width: 200px;
+    opacity: .12;
+    transform: rotate(-6deg);
+    pointer-events: none;
+}
+.whpc-welcome__greeting {
+    margin: 0 0 4px;
+    font-size: .92rem;
+    font-weight: 500;
+    letter-spacing: .02em;
+    color: rgba(255,255,255,.78);
+}
+.whpc-welcome__name {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    color: #fff; /* override the theme's dark heading colour on the dark banner */
+}
+.whpc-welcome__meta {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+.whpc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 13px;
+    border-radius: 999px;
+    font-size: .82rem;
+    font-weight: 600;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.18);
+    backdrop-filter: blur(2px);
+}
+.whpc-chip--accent { background: var(--whpc-orange); border-color: transparent; }
+.whpc-welcome__date { font-size: .85rem; color: rgba(255,255,255,.72); display: inline-flex; align-items: center; gap: 7px; }
+
+/* Section heading */
+.whpc-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 30px 2px 16px;
+}
+.whpc-section-head h3 {
+    margin: 0;
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: var(--whpc-navy);
+}
+.whpc-section-head p { margin: 2px 0 0; font-size: .88rem; color: var(--whpc-muted); }
+
+/* Rule dividing one tile section from the next */
+.whpc-section-rule {
+    margin: 34px 2px 0;
+    border: 0;
+    border-top: 1px solid var(--whpc-line);
+    opacity: 1;
+}
+
+/* App quick-launch grid */
+.whpc-apps {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 18px;
+}
+.whpc-app-card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 22px;
+    background: #fff;
+    border: 1px solid var(--whpc-line);
+    border-radius: var(--whpc-radius);
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--whpc-shadow-sm);
+    transition: transform .18s, box-shadow .18s, border-color .18s;
+    overflow: hidden;
+}
+.whpc-app-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--whpc-slate);
+    opacity: 0;
+    transition: opacity .18s;
+}
+.whpc-app-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--whpc-shadow-lg);
+    border-color: transparent;
+    color: inherit;
+}
+.whpc-app-card:hover::before { opacity: 1; }
+
+.whpc-app-card__icon {
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--whpc-slate);
+    background: var(--whpc-slate-soft);
+}
+
+.whpc-app-card__title {
+    margin: 2px 0 4px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--whpc-navy);
+}
+.whpc-app-card__desc { margin: 0; font-size: .86rem; color: var(--whpc-muted); line-height: 1.45; }
+.whpc-app-card__arrow {
+    position: absolute;
+    top: 20px; right: 18px;
+    font-size: 20px;
+    color: var(--whpc-line);
+    transition: color .18s, transform .18s;
+}
+.whpc-app-card:hover .whpc-app-card__arrow { color: var(--whpc-slate); transform: translateX(2px); }
+
+/* Drag-and-drop hint + draggable tiles (Websites page) */
+.whpc-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 9px 14px;
+    background: var(--whpc-slate-soft);
+    border: 1px solid #dbe4ea;
+    border-radius: 9px;
+    font-size: .85rem;
+    color: var(--whpc-slate-dark);
+}
+.whpc-hint i { font-size: 17px; color: var(--whpc-slate); }
+
+.whpc-app-card.is-draggable {
+    padding-left: 30px;
+    cursor: grab;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.whpc-app-card.is-draggable:active { cursor: grabbing; }
+.whpc-app-card.is-dragging {
+    opacity: .55;
+    box-shadow: var(--whpc-shadow-lg);
+    border-color: var(--whpc-slate);
+}
+.whpc-app-card__grip {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    color: var(--whpc-line);
+    opacity: 0;
+    transition: opacity .15s, color .15s;
+    pointer-events: none;
+}
+.whpc-app-card__grip i { margin: 0 -8px; font-size: 18px; }
+.whpc-app-card.is-draggable:hover .whpc-app-card__grip { opacity: 1; }
+.whpc-app-card.is-draggable:hover .whpc-app-card__grip i { color: var(--whpc-slate); }
+
+/* Remove (×) button on custom tiles */
+.whpc-app-card__remove {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--whpc-slate-soft);
+    color: var(--whpc-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, background .15s, color .15s;
+    z-index: 2;
+}
+.whpc-app-card:hover .whpc-app-card__remove { opacity: 1; }
+.whpc-app-card__remove:hover { background: #fde1e1; color: #b42318; }
+
+@media (max-width: 600px) {
+    .whpc-welcome { padding: 24px; }
+    .whpc-welcome__meta { align-items: flex-start; }
+}
+
+/* ============================================================
+   INNER APP — brand overrides for the Bootstrap admin theme
+   Loaded AFTER app.css so these win. Recolors the shared chrome
+   (sidebar, topbar, buttons, tables, cards) to the WHPC palette
+   so every inner page is branded without editing each view.
+   ============================================================ */
+
+:root {
+    --bs-primary: #4E738A;
+    --bs-primary-rgb: 78, 115, 138;
+    --bs-link-color: #4E738A;
+    --bs-link-hover-color: #3d5d70;
+}
+
+/* === Global type scale =====================================================
+   The base Bootstrap/Skote theme sizes the whole UI off a small 16px root and
+   a 0.8125rem (13px) body, which reads too small. Bumping the ROOT font-size
+   scales every rem-based size — body text, tables, forms, cards, headings,
+   buttons — up proportionally, like a gentle page zoom. Tune this one number
+   to taste (110% ≈ subtle, 112.5% ≈ noticeable, 115%+ ≈ large).
+   A handful of theme bits are hard-coded in px (so they don't scale with the
+   root); those text sizes are nudged up just below to match. */
+html { font-size: 112.5%; }                         /* 16px -> 18px (+12.5%) */
+
+/* Unify typography across the whole app */
+body { font-family: var(--whpc-font) !important; }
+
+/* px-locked theme text, scaled to match the root bump above */
+.card-title        { font-size: 17px; }             /* theme: 15px */
+
+/* --- Sidebar --- */
+.vertical-menu {
+    background: linear-gradient(180deg, var(--whpc-navy) 0%, var(--whpc-navy-deep) 100%) !important;
+    border-right: 1px solid rgba(255,255,255,.06) !important;
+}
+#sidebar-menu .menu-title {
+    color: rgba(255,255,255,.40) !important;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    font-size: 12.5px; /* theme: 11px */
+    font-weight: 600;
+}
+#sidebar-menu ul li a {
+    color: rgba(255,255,255,.74) !important;
+    font-size: 15px; /* theme: 13px */
+    font-weight: 500;
+    transition: color .15s, background .15s;
+    border-left: 3px solid transparent;
+}
+#sidebar-menu ul li a i { color: rgba(255,255,255,.55) !important; transition: color .15s; }
+#sidebar-menu ul li a:hover,
+#sidebar-menu ul li a:hover i { color: #fff !important; background: rgba(255,255,255,.06) !important; }
+#sidebar-menu ul li a.active,
+#sidebar-menu ul li.mm-active > a,
+#sidebar-menu ul li a.mm-active {
+    color: #fff !important;
+    background: rgba(255,255,255,.07) !important;
+    border-left-color: var(--whpc-orange) !important;
+}
+#sidebar-menu ul li a.active i,
+#sidebar-menu ul li.mm-active > a i { color: var(--whpc-orange) !important; }
+
+/* --- Sidebar: Apps drag-to-reorder --- */
+
+/* Closes a sidebar section. It has no content and takes no space — it exists so
+   a drag to the bottom of a section has something to land in front of, instead
+   of falling through to the end of the whole menu (sidebar-apps.js). */
+.whpc-apps-end {
+    display: block;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+}
+
+.whpc-app-nav { position: relative; }
+.whpc-app-nav.is-draggable { -webkit-user-select: none; user-select: none; }
+.whpc-app-nav.is-draggable > a { cursor: grab; }
+.whpc-app-nav.is-draggable:active > a { cursor: grabbing; }
+.whpc-app-nav.is-dragging { opacity: .5; }
+.whpc-app-nav.is-dragging > a {
+    background: rgba(255,255,255,.08) !important;
+    color: #fff !important;
+}
+.whpc-app-nav__grip {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s;
+}
+.whpc-app-nav__grip i { font-size: 18px; color: rgba(255,255,255,.45) !important; }
+.whpc-app-nav.is-draggable:hover .whpc-app-nav__grip { opacity: 1; }
+
+/* --- Topbar --- */
+#page-topbar {
+    background: #fff !important;
+    box-shadow: var(--whpc-shadow-sm) !important;
+    border-bottom: 1px solid var(--whpc-line);
+}
+.navbar-brand-box {
+    background: linear-gradient(180deg, var(--whpc-navy) 0%, var(--whpc-navy-deep) 100%) !important;
+}
+#page-topbar .header-item { color: var(--whpc-heading) !important; }
+#vertical-menu-btn { color: var(--whpc-link) !important; }
+
+/* --- Shell: the sidebar's two modes ---
+   Bootstrap 5.0 predates the responsive `.offcanvas-lg`, so the breakpoint the
+   sidebar switches at has to be spelled out. Below lg the drawer is Bootstrap's,
+   untouched — backdrop, Escape, focus trap and all. At lg and up the offcanvas
+   classes are neutralised so the element stays the fixed sidebar it has always
+   been; its width, position and navy gradient still come from the rules above,
+   which is why nothing here restates them. */
+@media (max-width: 991.98px) {
+    .vertical-menu.offcanvas {
+        /* The theme hides .vertical-menu outright below 992px. The drawer is that
+           same element, so it has to be handed back its display. */
+        display: flex;
+        top: 0;        /* full height — the drawer covers the topbar rather than starting below it */
+        z-index: 1050; /* over the backdrop (1040), which is itself over the topbar (1002) */
+    }
+}
+@media (min-width: 992px) {
+    .vertical-menu.offcanvas {
+        display: block;
+        visibility: visible;
+        transform: none;
+    }
+    .vertical-menu.offcanvas .offcanvas-body {
+        height: 100%;     /* the simplebar wrapper's h-100 needs a definite height to fill */
+        overflow: hidden; /* simplebar draws this scrollbar, as it always has */
+    }
+}
+
+/* --- Buttons --- */
+.btn-primary {
+    background-color: var(--whpc-slate) !important;
+    border-color: var(--whpc-slate) !important;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active,
+.btn-primary:focus-visible, .show > .btn-primary {
+    background-color: var(--whpc-slate-dark) !important;
+    border-color: var(--whpc-slate-dark) !important;
+    box-shadow: none !important;
+}
+.btn-warning {
+    background-color: var(--whpc-orange) !important;
+    border-color: var(--whpc-orange) !important;
+    color: #fff !important;
+}
+.btn-warning:hover, .btn-warning:focus, .btn-warning:active {
+    background-color: var(--whpc-orange-dark) !important;
+    border-color: var(--whpc-orange-dark) !important;
+    color: #fff !important;
+}
+.btn-outline-primary {
+    color: var(--whpc-link) !important;
+    border-color: var(--whpc-slate) !important;
+}
+.btn-outline-primary:hover { background: var(--whpc-slate) !important; color: #fff !important; }
+.btn-outline-secondary {
+    color: var(--whpc-heading) !important;
+    border-color: var(--whpc-line) !important;
+}
+.btn-outline-secondary:hover {
+    background: var(--whpc-slate-soft) !important;
+    color: var(--whpc-navy) !important;
+    border-color: var(--whpc-slate) !important;
+}
+
+/* --- Links --- */
+a { color: var(--whpc-link); }
+a:hover { color: var(--whpc-link-hover); }
+.text-primary { color: var(--whpc-link) !important; }
+
+/* --- Cards --- */
+.card {
+    border: 1px solid var(--whpc-line);
+    border-radius: 12px;
+    box-shadow: var(--whpc-shadow-sm);
+}
+
+/* --- Page titles: orange accent bar (app-wide) --- */
+.page-content h4 {
+    position: relative;
+    padding-left: 14px;
+    font-weight: 700;
+    color: var(--whpc-heading);
+    letter-spacing: -.01em;
+}
+.page-content h4::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 3px; bottom: 3px;
+    width: 4px;
+    border-radius: 2px;
+    background: var(--whpc-orange);
+}
+
+/* --- Tables --- */
+.table > thead th { color: var(--whpc-heading); font-weight: 600; }
+.table-secondary,
+.table-secondary > th,
+.table-secondary > td,
+.table > :not(caption) > * > .table-secondary {
+    background-color: var(--whpc-slate-soft) !important;
+    color: var(--whpc-navy) !important;
+}
+table.dataTable thead th { color: var(--whpc-heading); }
+.table-hover > tbody > tr:hover > * { background-color: #f7fafc; }
+
+/* --- Forms --- */
+.form-control:focus, .form-select:focus {
+    border-color: var(--whpc-slate);
+    box-shadow: 0 0 0 .18rem rgba(78,115,138,.18);
+}
+
+/* --- DataTables pagination --- */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--whpc-slate) !important;
+    border-color: var(--whpc-slate) !important;
+    color: #fff !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--whpc-slate-soft) !important;
+    border-color: var(--whpc-slate) !important;
+    color: var(--whpc-navy) !important;
+}
+
+/* ============================================================
+   TEMPORARY — preview-login UI (login buttons + impersonation
+   strip). Safe to delete this block when the feature is removed.
+   ============================================================ */
+.whpc-login__preview {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--whpc-line);
+}
+.whpc-login__preview-label {
+    display: block;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--whpc-muted);
+    margin-bottom: 10px;
+}
+.whpc-login__preview-label i { color: var(--whpc-orange); }
+.whpc-login__preview-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.whpc-login__preview-btns a {
+    flex: 1 1 auto;
+    text-align: center;
+    padding: 8px 12px;
+    border: 1px solid var(--whpc-line);
+    border-radius: 8px;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--whpc-slate-dark);
+    background: #fff;
+    text-decoration: none;
+    transition: border-color .15s, background .15s;
+}
+.whpc-login__preview-btns a:hover {
+    border-color: var(--whpc-slate);
+    background: var(--whpc-slate-soft);
+}
+
+.whpc-preview-strip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--whpc-orange);
+    color: #fff;
+    font-size: .85rem;
+    font-weight: 600;
+    padding: 8px 18px;
+    margin-top: 70px; /* clear the fixed 70px topbar (main-content has no top padding) */
+}
+/* page-content normally pads 70px to clear the topbar; the strip already did,
+   so collapse that clearance when the strip precedes it. */
+.whpc-preview-strip + .page-content {
+    padding-top: 24px !important;
+}
+.whpc-preview-strip i.bx-show { font-size: 18px; }
+.whpc-preview-strip .whpc-preview-strip__role {
+    background: rgba(255,255,255,.22);
+    padding: 1px 9px;
+    border-radius: 999px;
+}
+.whpc-preview-strip .whpc-preview-strip__exit {
+    margin-left: auto;
+    color: #fff;
+    /* !important because the theme's css/bootstrap.min.css ships
+       `a{text-decoration:none!important}`, which no selector can outrank — this
+       underline was written at build time and has never rendered. It is the one
+       thing marking the strip's only control as clickable. */
+    text-decoration: underline !important;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ===== Navigation loading overlay =====
+   Shown when navigating to an app via a sidebar link, so slow server renders
+   (e.g. the Loans schedule build) give immediate feedback. */
+.whpc-nav-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background: rgba(36, 55, 70, 0.55); /* navy, translucent */
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .15s ease;
+}
+.whpc-nav-loader.is-active {
+    opacity: 1;
+    visibility: visible;
+}
+.whpc-nav-loader__spinner {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 5px solid rgba(255, 255, 255, .35);
+    border-top-color: #FF8300; /* brand orange */
+    animation: whpc-nav-spin .7s linear infinite;
+}
+.whpc-nav-loader__text {
+    margin: 0;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+@keyframes whpc-nav-spin {
+    to { transform: rotate(360deg); }
+}
+/* Still a state, just not a moving one. This used to flash by on a navigation;
+   since the Assets period switch drives it, it can sit on screen for seconds. */
+@media (prefers-reduced-motion: reduce) {
+    .whpc-nav-loader__spinner {
+        animation: none;
+        border-top-color: #FF8300;
+        border-right-color: #FF8300;
+    }
+}
+
+/* Current payment row in the amortization schedule (nearest today) */
+.whpc-sched-current > td {
+    background-color: #FFE9CC !important;  /* light brand orange */
+    border-top: 2px solid #FF8300 !important;
+    border-bottom: 2px solid #FF8300 !important;
+    font-weight: 600;
+}
+
+/* Mirrored horizontal scrollbar above a wide DataTable (synced to the body) */
+.whpc-top-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: 14px;            /* room for the scrollbar (1px-tall content clips it) */
+    margin-bottom: 2px;
+}
+.whpc-top-scroll__inner {
+    height: 1px;
+}
+/* Make the strip read clearly as a scrollbar (Blink/WebKit — Chrome/Edge) */
+.whpc-top-scroll::-webkit-scrollbar { height: 12px; }
+.whpc-top-scroll::-webkit-scrollbar-track { background: #f1f4f7; border-radius: 6px; }
+.whpc-top-scroll::-webkit-scrollbar-thumb { background: #b9c6d0; border-radius: 6px; }
+.whpc-top-scroll::-webkit-scrollbar-thumb:hover { background: #9bb0bf; }
+
+/* Column-visibility ("Columns") dropdown — make shown vs hidden obvious.
+   Multiple cues: a checkbox glyph, text colour, weight and background. */
+.dt-button-collection .buttons-columnVisibility {
+    position: relative;
+    padding-left: 2.2rem !important;
+    color: #6c757d;                          /* hidden = muted */
+    background-color: transparent !important;
+}
+.dt-button-collection .buttons-columnVisibility::before {
+    content: '\2610';                         /* ☐ empty checkbox */
+    position: absolute;
+    left: 0.8rem;
+    font-size: 1.1rem;
+    line-height: 1.15;
+    color: #adb5bd;
+}
+.dt-button-collection .buttons-columnVisibility.active {
+    color: #243746 !important;                /* shown = navy + bold */
+    font-weight: 600;
+    background-color: #EAF1F5 !important;      /* light slate */
+}
+.dt-button-collection .buttons-columnVisibility.active::before {
+    content: '\2611';                         /* ☑ checked checkbox */
+    color: #FF8300;                           /* brand orange */
+}
+.dt-button-collection .buttons-columnVisibility:hover {
+    background-color: #dde7ee !important;
+}
+
+/* DataTables toolbar buttons (e.g. the loan dashboard "Columns"/"Export" pair).
+   The Buttons/BS4 integration wraps them in nested btn-groups — squaring the inner
+   corners into one segmented bar — and injects a muddy `.btn-secondary`. Flatten
+   the groups so each is a normal, separate, rounded brand button. `!important` is
+   needed to beat Bootstrap's high-specificity `.btn-group > .btn` radius rules. */
+.dataTables_wrapper .dt-buttons {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: .25rem;
+}
+.dataTables_wrapper .dt-buttons .btn-group {
+    margin: 0;
+}
+.dataTables_wrapper .dt-buttons .btn {
+    margin: 0 !important;
+    border-radius: .25rem !important;   /* full rounding on every button */
+}
+/* "Columns" → brand slate, matching the toolbar buttons above the table. */
+.dataTables_wrapper .dt-buttons .btn.buttons-colvis,
+.dataTables_wrapper .dt-buttons .btn.buttons-colvis:focus {
+    color: #fff;
+    background-color: var(--whpc-slate);
+    border-color: var(--whpc-slate);
+    box-shadow: none;
+}
+.dataTables_wrapper .dt-buttons .btn.buttons-colvis:hover,
+.dataTables_wrapper .dt-buttons .btn.buttons-colvis:active,
+.dataTables_wrapper .dt-buttons .btn.buttons-colvis.show {
+    color: #fff;
+    background-color: var(--whpc-slate-dark);
+    border-color: var(--whpc-slate-dark);
+}
+
+/* Loan dashboard: interest-only rows and their legend. Bootstrap 5.0 paints table
+   cells with an inset shadow of --bs-table-accent-bg, so the tint is set there. */
+#loansTable > tbody > tr.loan-io > * {
+    --bs-table-accent-bg: rgba(255, 131, 0, .12);
+}
+#loansTable > tbody > tr.loan-io:hover > * {
+    --bs-table-accent-bg: rgba(255, 131, 0, .2);
+}
+#loansTable > tbody > tr.loan-io > td:first-child {
+    border-left: 4px solid var(--whpc-orange);
+}
+.loan-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem 1rem;
+    margin-bottom: .5rem;
+    font-size: .875rem;
+}
+.loan-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+}
+.loan-legend__swatch {
+    display: inline-block;
+    width: 1.1rem;
+    height: .9rem;
+    border: 1px solid var(--whpc-line);
+    border-radius: 2px;
+}
+.loan-legend__swatch--io {
+    background-color: rgba(255, 131, 0, .12);
+    border-left: 4px solid var(--whpc-orange);
+}
+
+/* Loan change / review history panel (loans/create.php) */
+.whpc-history__item {
+    border: 1px solid var(--whpc-line);
+    border-left: 3px solid var(--whpc-slate);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+.whpc-history__diff {
+    list-style: none;
+    padding-left: 0;
+    margin: 8px 0 4px;
+    font-size: .9rem;
+}
+.whpc-history__diff li { padding: 2px 0; }
+.whpc-history__review { font-size: .9rem; margin-top: 6px; }
