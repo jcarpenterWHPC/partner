@@ -14,6 +14,8 @@ set -euxo pipefail
 exec > >(tee -a /var/log/whpc-userdata.log) 2>&1
 
 export DEBIAN_FRONTEND=noninteractive
+# cloud-init runs this with no HOME, and Composer refuses to run without one.
+export HOME=/root COMPOSER_HOME=/root/.composer
 APT_OPTS='-y -o Dpkg::Options::=--force-confold -o Dpkg::Options::=--force-confdef'
 BOX_ROLE='__ROLE__'
 SITE_HOST='__HOST__'
