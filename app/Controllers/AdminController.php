@@ -26,7 +26,7 @@ class AdminController extends BaseController
       'users' => (new UserModel())->roster(),
       'pmcs' => (new PmcModel())->active(),
       'errors' => session()->getFlashdata('errors') ?: [],
-      'authored' => (new StaffChangeModel())->countByUser(),
+      'authored' => (new UserModel())->withHistory(),
     ]);
   }
   public function userStore()
@@ -43,6 +43,10 @@ class AdminController extends BaseController
   public function userEdit(int $id)
   {
     $u = $this->editable($id);
+    if (!is_array($u))
+    {
+      return $u;
+    }
     return view('pages/admin/user-form', [
       'title' => 'Edit ' . $u['name'],
       'crumbs' => [['Home', '/'], ['Portal users', 'admin/users'], ['Edit ' . $u['name'], null]],
@@ -55,6 +59,10 @@ class AdminController extends BaseController
   public function userUpdate(int $id)
   {
     $u = $this->editable($id);
+    if (!is_array($u))
+    {
+      return $u;
+    }
     $in = $this->userInput($u);
     if ($in['errors'] !== [])
     {
@@ -71,28 +79,41 @@ class AdminController extends BaseController
   public function userDelete(int $id)
   {
     $u = $this->editable($id);
-    $n = (new StaffChangeModel())->where('user_id', $id)->countAllResults();
-    if ($n > 0)
+    if (!is_array($u))
     {
-      return redirect()->to('/admin/users')->with('error', $u['name'] . ' has made roster changes, which keep their author. Disable the account instead.');
+      return $u;
+    }
+    $users = new UserModel();
+    if ($users->hasHistory($id))
+    {
+      return redirect()->to('/admin/users')->with('error', $u['name'] . ' has signed in or recorded changes, and that history keeps its author. Disable the account instead.');
     }
     $db = db_connect();
     $db->table('login_codes')->where('user_id', $id)->delete();
-    (new UserModel())->delete($id);
+    $users->delete($id);
     ActivityLogModel::record('admin.user_deleted', (int)session('user')['id'], (string)session('user')['email'], $u['email'] . ' #' . $id);
     return redirect()->to('/admin/users')->with('success', $u['email'] . ' is deleted.');
   }
-  /** The account $id if this screen may change it; configured admins and oneself are not. */
-  private function editable(int $id): array
+  /**
+   * The account $id if this screen may change it; otherwise the redirect that says why
+   * not. Standing admins are set in the configuration, and nobody edits themself here.
+   *
+   * @return array|\CodeIgniter\HTTP\RedirectResponse
+   */
+  private function editable(int $id)
   {
     $u = (new UserModel())->find($id);
     if (!$u)
     {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     }
-    if ((int)$u['id'] === (int)session('user')['id'] || (new Accounts())->isConfiguredAdmin((string)$u['email']))
+    if ((int)$u['id'] === (int)session('user')['id'])
     {
-      throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+      return redirect()->to('/admin/users')->with('error', 'You cannot change or delete your own account here. Ask another admin.');
+    }
+    if ((new Accounts())->isConfiguredAdmin((string)$u['email']))
+    {
+      return redirect()->to('/admin/users')->with('error', $u['name'] . ' is a standing admin set in the portal configuration and cannot be changed or deleted here.');
     }
     return $u;
   }
@@ -140,18 +161,10 @@ class AdminController extends BaseController
   public function userToggle(int $id)
   {
     $users = new UserModel();
-    $u = $users->find($id);
-    if (!$u)
+    $u = $this->editable($id);
+    if (!is_array($u))
     {
-      throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
-    }
-    if ((int)$u['id'] === (int)session('user')['id'])
-    {
-      return redirect()->to('/admin/users')->with('error', 'You cannot disable your own account.');
-    }
-    if ((new Accounts())->isConfiguredAdmin((string)$u['email']))
-    {
-      return redirect()->to('/admin/users')->with('error', $u['name'] . ' is a standing admin set in the portal configuration and cannot be disabled here.');
+      return $u;
     }
     $on = (int)$u['is_active'] === 1 ? 0 : 1;
     $users->update($id, ['is_active' => $on]);

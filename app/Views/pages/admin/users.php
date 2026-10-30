@@ -3,7 +3,7 @@
  * @var list<array>          $users
  * @var list<array>          $pmcs
  * @var array<string,string> $errors
- * @var array<int,int>       $authored  user id => roster changes they made
+ * @var array<int,true>      $authored  ids of accounts with history (signed in or recorded changes): no Delete
  */
 $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fielderror">' . esc($errors[$f]) . '</div>' : '';
 $accounts = new \App\Libraries\Accounts();
@@ -72,10 +72,12 @@ $accounts = new \App\Libraries\Accounts();
                     <button type="submit" class="pp-btn pp-btn--ghost pp-btn--sm"><?= (int)$u['is_active'] === 1 ? 'Disable' : 'Enable' ?></button>
                 </form>
                 <?php if (empty($authored[(int)$u['id']])): ?>
-                <form method="post" action="<?= base_url('admin/users/' . (int)$u['id'] . '/delete') ?>" onsubmit="return confirm('Delete <?= esc($u['email'], 'js') ?>?')">
+                <form method="post" action="<?= base_url('admin/users/' . (int)$u['id'] . '/delete') ?>" onsubmit="return confirm('Delete <?= esc($u['email'], 'js') ?>? This account has never been used.')">
                     <?= csrf_field() ?>
                     <button type="submit" class="pp-btn pp-btn--ghost pp-btn--sm pp-btn--danger">Delete</button>
                 </form>
+                <?php else: ?>
+                <span class="pp-muted pp-rowactions__note" title="Has signed in or recorded changes, so the account is kept for its history. Disable it instead.">Disable only</span>
                 <?php endif; ?>
                 <?php endif; ?>
             </td>

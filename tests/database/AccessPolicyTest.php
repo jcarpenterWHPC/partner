@@ -263,20 +263,35 @@ final class AccessPolicyTest extends CIUnitTestCase
     $this->withSession(['user' => $admin])->post('admin/users/' . $jane, ['name' => 'Jane', 'email' => 'jane.d@pmc.test']);
     $this->assertSame($other, (int)$users->find($jane)['pmc_id'], 'no company is refused');
 
-    foreach ([$brian, 999] as $locked)
+    $users->insert(['email' => 'joe@whpc.com', 'name' => 'Joe Carpenter', 'pmc_id' => null, 'is_admin' => 1, 'is_active' => 1], true);
+    $joe = (int)$users->where('email', 'joe@whpc.com')->first()['id'];
+    $admin['id'] = $joe;
+    foreach ([$brian => 'standing admin', $joe => 'your own account'] as $locked => $why)
     {
-      try
-      {
-        $this->withSession(['user' => $admin])->get('admin/users/' . $locked . '/edit');
-        $this->fail("account {$locked} was editable");
-      }
-      catch (\CodeIgniter\Exceptions\PageNotFoundException)
-      {
-      }
+      $this->withSession(['user' => $admin])->get('admin/users/' . $locked . '/edit')->assertRedirectTo('/admin/users');
+      $this->assertStringContainsString($why, (string)session()->getFlashdata('error'));
+      $this->withSession(['user' => $admin])->post('admin/users/' . $locked, ['name' => 'X', 'email' => 'x@whpc.com'])->assertRedirectTo('/admin/users');
+      $this->withSession(['user' => $admin])->post('admin/users/' . $locked . '/delete')->assertRedirectTo('/admin/users');
+      $this->withSession(['user' => $admin])->post('admin/users/' . $locked . '/toggle')->assertRedirectTo('/admin/users');
+      $this->assertSame([1, 1], [(int)$users->find($locked)['is_active'], (int)$users->find($locked)['is_admin']], "{$why}: untouched");
+      $this->assertStringNotContainsString('x@whpc.com', (string)$users->find($locked)['email']);
     }
 
     $this->withSession(['user' => $admin])->post('admin/users/' . $pat . '/delete')->assertRedirectTo('/admin/users');
     $this->assertNotNull($users->find($pat), 'an author of roster changes stays');
+    $this->assertStringContainsString('Disable the account instead', (string)session()->getFlashdata('error'));
+    // A vacancy's author and anyone who has signed in are kept too.
+    $vic = (int)$users->insert(['email' => 'vic@pmc.test', 'name' => 'Vic Vacancy', 'pmc_id' => $gf], true);
+    (new \App\Models\VacancyModel())->insert(['pmc_id' => $gf, 'property_number' => '1', 'role' => 'Site Manager', 'open_since' => '2026-10-01', 'created_by' => $vic]);
+    $this->withSession(['user' => $admin])->post('admin/users/' . $vic . '/delete')->assertRedirectTo('/admin/users');
+    $this->assertNotNull($users->find($vic));
+    $sam = (int)$users->insert(['email' => 'sam@pmc.test', 'name' => 'Sam Signed-in', 'pmc_id' => $gf], true);
+    \App\Models\ActivityLogModel::record('login.ok', $sam, 'sam@pmc.test');
+    $this->withSession(['user' => $admin])->post('admin/users/' . $sam . '/delete')->assertRedirectTo('/admin/users');
+    $this->assertNotNull($users->find($sam));
+    $list = (string)$this->withSession(['user' => $admin])->get('admin/users')->response()->getBody();
+    $this->assertStringNotContainsString('admin/users/' . $sam . '/delete', $list);
+    $this->assertStringContainsString('Disable only', $list);
     (new \App\Libraries\LoginCode())->issue(['id' => $jane, 'email' => 'jane.d@pmc.test', 'name' => 'Jane']);
     $this->withSession(['user' => $admin])->post('admin/users/' . $jane . '/delete')->assertRedirectTo('/admin/users');
     $this->assertNull($users->find($jane));
