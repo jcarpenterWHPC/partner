@@ -301,6 +301,13 @@ final class RosterTest extends CIUnitTestCase
     $this->withSession([])->post('roster', $this->sam())->assertRedirectTo('/login?expired=1');
     $home = $this->as($this->jane)->get('/');
     $home->assertSeeElement('#cardRoster');
+    $home->assertSee('New here? How this works');
+    $guide = $this->as($this->jane)->get('help');
+    $guide->assertStatus(200);
+    $guide->assertSee('Someone leaves');
+    $guide->assertDontSee('For WHPC admins');
+    $this->as($this->admin)->get('help')->assertSee('For WHPC admins');
+    $this->withSession([])->get('help')->assertRedirectTo('/login?expired=1');
     $home->assertDontSeeElement('#cardUsers');
     $this->as($this->admin)->get('/')->assertSeeElement('#cardUsers');
   }

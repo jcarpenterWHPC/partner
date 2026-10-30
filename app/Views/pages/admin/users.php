@@ -20,6 +20,11 @@ $accounts = new \App\Libraries\Accounts();
 <?php if (session()->getFlashdata('error')): ?>
     <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
 <?php endif; ?>
+<?= view('partials/help', ['id' => 'users', 'title' => 'How this works', 'tips' => [
+    'Partner users sign in with a one-time code emailed to them; no password to set. Add one with their name, work email and organization, and tell them to go to ' . esc(base_url()) . '.',
+    'A user sees only their organization\'s people. <strong>Disable</strong> rather than delete anyone who has recorded changes, so the history keeps its author.',
+    'Admin accounts for WHPC staff are set in the portal\'s configuration (the <code>partner.admins</code> secret), not here. Other WHPC addresses cannot sign in.',
+]]) ?>
 <form method="post" action="<?= base_url('admin/users') ?>" class="pp-form pp-form--wide pp-panel" id="userForm">
     <?= csrf_field() ?>
     <div class="pp-grid">

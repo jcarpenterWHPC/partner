@@ -108,7 +108,9 @@ today `Accounts::forMicrosoft` admits WHPC's tenant only.
 ```
 
 PHP app code is 2-space Allman; views are 4-space. Keep comments to what the code cannot
-say. No explanatory prose in the UI.
+say. Guidance in the UI lives in one place per page: the "How this works" panel
+(`partials/help`, remembered as dismissed per browser) and the `/help` guide (Joe,
+2026-10-30: partners must not need training). Forms and tables otherwise stay free of prose.
 
 ## Branding
 

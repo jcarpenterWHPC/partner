@@ -25,6 +25,7 @@
     </a>
     <?php if ($u = session('user')): ?>
     <nav class="pp-topbar__user" aria-label="Account">
+        <a class="pp-topbar__help" href="<?= base_url('help') ?>"><i class="bx bx-help-circle"></i> Help</a>
         <span class="pp-topbar__name"><?= esc($u['name'] ?: $u['email']) ?></span>
         <?php if (($u['pmc_name'] ?? '') !== ''): ?><span class="pp-topbar__company"><?= esc($u['pmc_name']) ?></span><?php endif; ?>
         <form method="post" action="<?= base_url('logout') ?>">
@@ -51,6 +52,18 @@
     <?= $this->renderSection('content') ?>
 </main>
 <footer class="pp-footer">&copy; <?= date('Y') ?> Wisconsin Housing Preservation Corp.</footer>
+<script>
+(function () {
+    // "How this works" panels stay open until the person says "Got it", per browser.
+    var key = function (d) { return 'pp-help-' + d.getAttribute('data-help'); };
+    document.querySelectorAll('details.pp-help').forEach(function (d) {
+        try { if (localStorage.getItem(key(d)) === 'hidden') { d.removeAttribute('open'); } } catch (e) {}
+        d.addEventListener('toggle', function () { try { localStorage.setItem(key(d), d.open ? 'open' : 'hidden'); } catch (e) {} });
+        var b = d.querySelector('.pp-help__done');
+        if (b) { b.addEventListener('click', function () { d.removeAttribute('open'); }); }
+    });
+})();
+</script>
 <?= $this->renderSection('scripts') ?>
 </body>
 </html>

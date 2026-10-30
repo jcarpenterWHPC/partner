@@ -29,6 +29,7 @@ $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fiel
 <?php if ($errors): ?>
     <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span>Check the highlighted fields.</span></div>
 <?php endif; ?>
+<p class="pp-intro">Nobody holds this position. Record when it went open and who is looking after the property until it is filled. When you add the replacement on the roster and tick this property, the position closes by itself.</p>
 <form method="post" action="<?= base_url('properties/open') ?>" class="pp-form pp-form--wide pp-panel" id="vacancyForm">
     <?= csrf_field() ?>
     <input type="hidden" name="property" value="<?= esc((string)$property['property_number'], 'attr') ?>">

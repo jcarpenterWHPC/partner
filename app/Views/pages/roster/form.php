@@ -31,6 +31,12 @@ $cancel = base_url($back === 'properties' ? 'properties' : 'roster');
 <?php if ($errors): ?>
     <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span>Check the highlighted fields.</span></div>
 <?php endif; ?>
+<?= view('partials/help', ['id' => 'person', 'title' => 'Filling this in', 'tips' => [
+    '<strong>Position</strong> is their main job. Their role is the same at every property you tick unless you choose a different one beside that property.',
+    '<strong>Start date</strong> is their first day. Leave <strong>end date</strong> empty until they leave; entering it is how you record a departure.',
+    'Tick every property they cover; the filter box finds one quickly. Unticking a property hands it over: it shows as OPEN until someone else covers it.',
+    'Tick <strong>N/A</strong> if they have no work email, so WHPC knows it is not missing.',
+]]) ?>
 <form method="post" action="<?= base_url($person ? 'roster/' . (int)$person['id'] : 'roster') ?>" class="pp-form pp-form--wide" id="personForm">
     <?= csrf_field() ?>
     <?php if ($back !== ''): ?><input type="hidden" name="back" value="<?= esc($back, 'attr') ?>"><?php endif; ?>

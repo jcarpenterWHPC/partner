@@ -19,6 +19,7 @@ $routes->get('logout', 'Auth::logout');
 $routes->group('', ['filter' => 'auth'], static function (RouteCollection $routes)
 {
   $routes->get('/', 'Portal::index');
+  $routes->get('help', 'Help::index');
   $routes->get('roster', 'RosterController::index');
   $routes->get('roster/new', 'RosterController::create');
   $routes->post('roster', 'RosterController::store');

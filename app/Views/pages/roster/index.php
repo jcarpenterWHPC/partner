@@ -47,6 +47,12 @@ $propList = static function (array $p) use ($names): string {
 <?php if (session()->getFlashdata('success')): ?>
     <div class="whpc-alert whpc-alert--success" role="status"><i class="bx bx-check-circle"></i><span><?= esc(session()->getFlashdata('success')) ?></span></div>
 <?php endif; ?>
+<?= view('partials/help', ['id' => 'roster', 'title' => 'How this works', 'tips' => [
+    'One row per person, however many properties they cover. What WHPC had on file is already here.',
+    '<strong>Someone left:</strong> click their edit icon and enter the <strong>end date</strong> (their last day). They move to the departed list and their positions show as OPEN on the <a href="' . base_url('properties') . '">Properties</a> page.',
+    '<strong>Someone new:</strong> <strong>Add a person</strong>, choose their position, tick the properties they cover. If their role at one property differs from their position, pick it beside that property.',
+    'No work email? Tick <strong>N/A</strong> on their form. Nothing is ever deleted; the history icon shows every change with its date.',
+]]) ?>
 <div class="pp-tablewrap">
 <table class="pp-table" id="rosterTable">
     <thead>

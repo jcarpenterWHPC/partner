@@ -28,6 +28,11 @@ $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fiel
 <?php if (session()->getFlashdata('error')): ?>
     <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
 <?php endif; ?>
+<?= view('partials/help', ['id' => 'orgs', 'title' => 'How this works', 'tips' => [
+    'Management companies and their properties come from Assets, nightly and whenever you click <strong>Sync from Assets</strong>. The same sync imports Assets\' property contacts into each roster, fills blanks, and marks people Assets no longer lists as departed. It never overwrites what a partner entered.',
+    'A <strong>service agency</strong> (LSS) is not in Assets as a management company, so add it below. Its people may be assigned to any property, and its Properties page shows the ones they cover.',
+    'Open positions are counted per organization; the Properties link shows them.',
+]]) ?>
 <div class="pp-tablewrap">
 <table class="pp-table" id="pmcTable">
     <thead><tr><th>Organization</th><th>Kind</th><th>Properties</th><th>Staff on roster</th><th>Open positions</th><th>Portal users</th><th></th></tr></thead>

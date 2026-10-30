@@ -38,6 +38,12 @@ $services = \App\Models\PmcModel::isServices($pmc);
 <?php if (session()->getFlashdata('error')): ?>
     <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
 <?php endif; ?>
+<?= view('partials/help', ['id' => 'properties', 'title' => 'How this works', 'tips' => [
+    'Each column is a role every property should have filled: ' . esc(implode(', ', $expected)) . '. A name means it is filled; <span class="pp-open">OPEN</span> means nobody holds it. Red means OPEN with no note on who is covering.',
+    '<strong>Someone left:</strong> click their name and enter their end date. <strong>Someone new:</strong> <strong>Add a person</strong> and tick the property; the OPEN position closes itself.',
+    '<strong>Record vacancy</strong> / <strong>Update</strong>: say since when the position is open and who is looking after the property meanwhile.',
+    '<strong>Also</strong> lists people at the property in other roles. <strong>Download</strong> gives you the current assignments as a spreadsheet.',
+]]) ?>
 <div class="pp-toolbar">
     <input class="pp-input pp-input--filter" type="search" id="boardFilter" placeholder="Find a property…" aria-label="Find a property">
     <label class="pp-check pp-check--inline"><input type="checkbox" id="attnOnly"> <span>Needs attention only (<?= (int)$attention ?>)</span></label>
