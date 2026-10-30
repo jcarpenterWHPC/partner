@@ -133,7 +133,7 @@ $propList = static function (array $p) use ($names): string {
             </td>
             <td><?= esc(nice_date($p['start_date'])) ?></td>
             <td class="pp-rowactions">
-                <a class="pp-btn pp-btn--primary pp-btn--sm" href="<?= base_url('roster/' . (int)$p['id'] . '/edit') ?>" aria-label="Edit <?= esc($p['name'], 'attr') ?>"><i class="bx bx-edit"></i> Edit</a>
+                <a class="pp-btn pp-btn--ghost pp-btn--sm" href="<?= base_url('roster/' . (int)$p['id'] . '/edit') ?>" aria-label="Edit <?= esc($p['name'], 'attr') ?>"><i class="bx bx-edit"></i> Edit</a>
                 <a class="pp-btn pp-btn--ghost pp-btn--sm" href="<?= base_url('roster/' . (int)$p['id'] . '/history') ?>" aria-label="View <?= esc($p['name'], 'attr') ?>"><i class="bx bx-show"></i> View</a>
             </td>
         </tr>
