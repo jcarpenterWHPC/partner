@@ -207,7 +207,7 @@ class Auth extends BaseController
     if ($user === null)
     {
       ActivityLogModel::record('login.unknown_email', null, $who['email'], 'microsoft ' . $who['tid']);
-      return redirect()->to('/login')->with('error', 'That Microsoft account is not set up for the Partner Portal.');
+      return redirect()->to('/login')->with('error', 'That Microsoft account is not set up for the Partner Portal yet. Ask a WHPC admin to add it on Portal users, then sign in again.');
     }
     return $this->establish($user, 'microsoft');
   }
