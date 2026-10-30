@@ -42,9 +42,9 @@ class Partner extends BaseConfig
     'Regional Vice President' => 'Regional Vice President',
     'Maintenance' => 'Maintenance Technician',
     'Leasing Agent' => 'Leasing Agent',
-    'Service Coordinator / Supervisor' => 'Service Coordinator',
+    'Service Coordinator' => 'Service Coordinator',
+    'Service Coord Supervisor' => 'Service Coordinator',
     'FSS Coordinator' => 'Service Coordinator',
-    'Accountant' => 'Other',
     'Executive' => 'Other',
   ];
   /** Who a partner writes to when they cannot sign in. */
