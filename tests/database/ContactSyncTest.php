@@ -40,7 +40,7 @@ final class ContactSyncTest extends CIUnitTestCase
   private function rows(): array
   {
     return [
-      $this->row(1, '10280', 'Site Manager', 'Ruby Lopez', 'Ruby@meridian.test', 'Community Manager', 'Meridian', '608-555-0101'),
+      $this->row(1, '10280', 'Site Manager', 'Lopez, Ruby', 'Ruby@meridian.test', 'Community Manager', 'Meridian', '608-555-0101'),
       $this->row(1, '10290', 'Site Manager', 'Ruby Lopez', 'ruby@meridian.test', 'Community Manager'),
       $this->row(2, '10280', 'Regional Manager', 'Rene Mosback', 'rene@meridian.test'),
       $this->row(2, '10290', 'Regional Manager', 'Rene Mosback', 'rene@meridian.test'),
@@ -166,6 +166,13 @@ final class ContactSyncTest extends CIUnitTestCase
     $this->assertSame(0, (new StaffModel())->countAllResults());
     $this->assertSame(0, (new StaffChangeModel())->countAllResults());
     $this->assertStringContainsString('3 added, 0 updated, 0 departed, 0 unchanged · roles not imported: Asset Manager 1, Drone Pilot 1, HUD Project Manager 1', ContactSync::describe($r, true));
+  }
+  public function testAssetsLastFirstNamesBecomeFirstLast(): void
+  {
+    $this->assertSame('Ruby Lopez', ContactSync::personName('Lopez, Ruby'));
+    $this->assertSame('Mary Ann St. John', ContactSync::personName('St. John,  Mary Ann'));
+    $this->assertSame('Ruby Lopez', ContactSync::personName('Ruby Lopez'));
+    $this->assertSame('Lopez, Ruby, Jr.', ContactSync::personName('Lopez, Ruby, Jr.'), 'two commas: left alone rather than guessed');
   }
   public function testEveryMappedRoleIsAKnownPosition(): void
   {

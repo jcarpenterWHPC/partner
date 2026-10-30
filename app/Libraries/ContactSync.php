@@ -78,7 +78,7 @@ class ContactSync
       {
         if ($c[$ours] === '' && trim((string)($r[$theirs] ?? '')) !== '')
         {
-          $c[$ours] = trim((string)$r[$theirs]);
+          $c[$ours] = $ours === 'name' ? self::personName((string)$r[$theirs]) : trim((string)$r[$theirs]);
         }
       }
       $c['at'][$pn][$position] = true;
@@ -237,6 +237,16 @@ class ContactSync
     }
     ksort($out['skipped_roles']);
     return $out;
+  }
+  /** Assets writes "Last, First"; the portal shows "First Last". */
+  public static function personName(string $name): string
+  {
+    $name = trim(preg_replace('/\s+/', ' ', $name));
+    if (preg_match('/^([^,]+),\s*([^,]+)$/', $name, $m))
+    {
+      return trim($m[2]) . ' ' . trim($m[1]);
+    }
+    return $name;
   }
   /**
    * The management company for a contact whose company is not an organisation here:

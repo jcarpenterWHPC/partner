@@ -54,7 +54,7 @@ class Partner extends BaseConfig
    * @var array<string,list<string>>
    */
   public array $propertyRoles = [
-    'management' => ['Regional Manager', 'Site Manager', 'Maintenance Technician'],
+    'management' => ['Site Manager', 'Maintenance Technician', 'Regional Manager'],
     'services' => ['Service Coordinator', 'Service Coord Supervisor'],
   ];
   /** Who a partner writes to when they cannot sign in. */
