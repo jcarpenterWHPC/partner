@@ -233,7 +233,7 @@ a.pp-card:hover, a.pp-card:focus-visible {
 .pp-input--select { appearance: auto; }
 .pp-input--filter { max-width: 320px; padding: 8px 12px; }
 .pp-fielderror { color: #8a2e22; font-size: .88rem; }
-.pp-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 16px; max-height: 320px; overflow: auto; padding: 10px 12px; border: 1px solid var(--whpc-line); border-radius: 10px; background: var(--whpc-surface); }
+.pp-checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px 20px; padding: 12px 14px; border: 1px solid var(--whpc-line); border-radius: 10px; background: var(--whpc-surface); }
 .pp-check { display: flex; align-items: flex-start; gap: 8px; font-size: .95rem; cursor: pointer; }
 .pp-check input { margin-top: 4px; }
 .pp-props { max-width: 260px; }
