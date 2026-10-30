@@ -117,7 +117,7 @@ $propList = static function (array $p) use ($names): string {
     <?php foreach ($rows as $p): ?>
         <tr class="<?= $p['end_date'] !== null ? 'is-departed' : '' ?>" data-id="<?= (int)$p['id'] ?>" data-position="<?= esc($p['position'], 'attr') ?>" data-roles="<?= esc(implode('|', array_unique(array_merge([$p['position']], array_values($p['roles'])))), 'attr') ?>" data-props="|<?= esc(implode('|', $p['properties']), 'attr') ?>|" data-text="<?= esc(mb_strtolower(implode(' ', [$p['name'], $p['title'], $p['email'], $p['mobile_phone'], $p['office_phone'], $p['position'], $propList($p)])), 'attr') ?>">
             <td>
-                <strong><?= esc($p['name']) ?></strong>
+                <a class="pp-namelink" href="<?= base_url('roster/' . (int)$p['id'] . '/edit') ?>"><strong><?= esc($p['name']) ?></strong></a>
                 <?php if ($p['end_date'] !== null): ?><span class="pp-badge pp-badge--departed">Departed <?= esc(nice_date($p['end_date'])) ?></span><?php endif; ?>
             </td>
             <td><?= esc($p['position']) ?><?= $p['title'] !== '' ? '<br><span class="pp-muted">' . esc($p['title']) . '</span>' : '' ?></td>
@@ -133,8 +133,8 @@ $propList = static function (array $p) use ($names): string {
             </td>
             <td><?= esc(nice_date($p['start_date'])) ?></td>
             <td class="pp-rowactions">
+                <a class="pp-btn pp-btn--primary pp-btn--sm" href="<?= base_url('roster/' . (int)$p['id'] . '/edit') ?>" aria-label="Edit <?= esc($p['name'], 'attr') ?>"><i class="bx bx-edit"></i> Edit</a>
                 <a class="pp-btn pp-btn--ghost pp-btn--sm" href="<?= base_url('roster/' . (int)$p['id'] . '/history') ?>" aria-label="View <?= esc($p['name'], 'attr') ?>"><i class="bx bx-show"></i> View</a>
-                <a class="pp-btn pp-btn--ghost pp-btn--sm" href="<?= base_url('roster/' . (int)$p['id'] . '/edit') ?>" aria-label="Edit <?= esc($p['name'], 'attr') ?>"><i class="bx bx-edit"></i> Edit</a>
             </td>
         </tr>
     <?php endforeach; ?>

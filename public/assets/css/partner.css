@@ -212,6 +212,8 @@ a.pp-card:hover, a.pp-card:focus-visible {
 .pp-rowactions > a { text-decoration: none; }
 .pp-rowactions .pp-btn--sm .bx { font-size: 1.1em; margin-right: 4px; }
 .pp-rowactions .pp-btn--sm { line-height: 1.2; }
+.pp-namelink { color: inherit; text-decoration: none; }
+.pp-namelink:hover strong { color: var(--whpc-link); text-decoration: underline; }
 .pp-rowactions__note { font-size: .82rem; margin-left: 10px; cursor: help; border-bottom: 1px dotted currentColor; }
 .pp-btn--sm { padding: 5px 10px; font-size: .85rem; }
 .pp-badge--departed, .pp-badge--reinstated, .pp-badge--updated, .pp-badge--added, .pp-badge--imported, .pp-badge--synced { margin-left: 8px; }
