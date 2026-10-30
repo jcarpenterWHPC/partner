@@ -66,7 +66,7 @@ $accounts = new \App\Libraries\Accounts();
             <td><?= esc(nice_time($u['last_login_at'], 'Never')) ?></td>
             <td class="pp-rowactions">
                 <?php if ((int)$u['id'] !== (int)session('user')['id'] && !$accounts->isConfiguredAdmin((string)$u['email'])): ?>
-                <a href="<?= base_url('admin/users/' . (int)$u['id'] . '/edit') ?>" aria-label="Edit <?= esc($u['name'], 'attr') ?>"><i class="bx bx-edit"></i></a>
+                <a class="pp-btn pp-btn--ghost pp-btn--sm" href="<?= base_url('admin/users/' . (int)$u['id'] . '/edit') ?>" aria-label="Edit <?= esc($u['name'], 'attr') ?>"><i class="bx bx-edit"></i> Edit</a>
                 <form method="post" action="<?= base_url('admin/users/' . (int)$u['id'] . '/toggle') ?>">
                     <?= csrf_field() ?>
                     <button type="submit" class="pp-btn pp-btn--ghost pp-btn--sm"><?= (int)$u['is_active'] === 1 ? 'Disable' : 'Enable' ?></button>

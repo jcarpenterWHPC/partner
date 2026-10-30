@@ -209,8 +209,8 @@ a.pp-card:hover, a.pp-card:focus-visible {
 .pp-empty { text-align: center; color: var(--whpc-muted); padding: 32px !important; }
 .pp-rowactions { white-space: nowrap; text-align: right; }
 .pp-rowactions > a, .pp-rowactions > form { display: inline-flex; align-items: center; vertical-align: middle; margin: 0 0 0 10px; }
-.pp-rowactions > a { font-size: 1.25rem; text-decoration: none; line-height: 1; }
-.pp-rowactions > a .bx { display: block; }
+.pp-rowactions > a { text-decoration: none; }
+.pp-rowactions .pp-btn--sm .bx { font-size: 1.1em; margin-right: 4px; }
 .pp-rowactions .pp-btn--sm { line-height: 1.2; }
 .pp-btn--sm { padding: 5px 10px; font-size: .85rem; }
 .pp-badge--departed, .pp-badge--reinstated, .pp-badge--updated, .pp-badge--added, .pp-badge--imported, .pp-badge--synced { margin-left: 8px; }

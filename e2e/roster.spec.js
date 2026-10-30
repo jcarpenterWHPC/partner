@@ -58,7 +58,7 @@ test('a PMC user adds a person with a property, edits them and sees the history'
   await page.fill('#title', 'Community Manager');
   await page.click('#savePerson');
   await expect(page.locator('.whpc-alert--success')).toContainText('updated');
-  await page.locator('#rosterTable tbody tr', { hasText: 'Pat E2E' }).locator('a[aria-label^="History"]').click();
+  await page.locator('#rosterTable tbody tr', { hasText: 'Pat E2E' }).locator('a[aria-label^="View"]').click();
   const items = page.locator('#historyList .pp-timeline__item');
   await expect(items).toHaveCount(2);
   await expect(items.first()).toContainText('Updated');
