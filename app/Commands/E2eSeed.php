@@ -54,6 +54,7 @@ class E2eSeed extends BaseCommand
         $db->table('staff_properties')->whereIn('staff_id', $staffIds)->delete();
       }
       $db->table('staff_changes')->where('pmc_id', $id)->delete();
+      $db->table('vacancies')->where('pmc_id', $id)->delete();
       $db->table('staff')->where('pmc_id', $id)->delete();
       $userIds = array_column($db->table('users')->select('id')->where('pmc_id', $id)->get()->getResultArray(), 'id');
       if ($userIds !== [])
