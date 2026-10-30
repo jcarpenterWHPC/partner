@@ -246,7 +246,7 @@ a.pp-card:hover, a.pp-card:focus-visible {
 /* Sign-in: the "or" between the code form and the Microsoft button. */
 .whpc-login__or { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; color: var(--whpc-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; }
 .whpc-login__or::before, .whpc-login__or::after { content: ""; flex: 1; border-top: 1px solid var(--whpc-border, #d9e0e6); }
-#microsoftSignIn .bx { font-size: 1.15em; vertical-align: -2px; margin-right: 4px; }
+#microsoftSignIn { text-decoration: none; }
 
 .pp-btn--danger { color: #b3261e; border-color: #e6b8b4; }
 .pp-btn--danger:hover { background: #fbeceb; }

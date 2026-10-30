@@ -55,7 +55,10 @@ $notice = $req->getGet('expired') ? 'Your session has expired. Please sign in ag
                 </form>
                 <?php if ($microsoft): ?>
                 <div class="whpc-login__or">or</div>
-                <a class="pp-btn pp-btn--ghost pp-btn--block" id="microsoftSignIn" href="<?= base_url('login/microsoft') ?>"><i class="bx bxl-microsoft"></i> Sign in with Microsoft</a>
+                <a class="whpc-sso-btn" id="microsoftSignIn" href="<?= base_url('login/microsoft') ?>">
+                    <svg class="whpc-sso-btn__icon" viewBox="0 0 21 21" aria-hidden="true" focusable="false"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+                    <span>Sign in with Microsoft</span>
+                </a>
                 <?php endif; ?>
                 <div class="whpc-login__help">
                     Trouble signing in? Contact <a href="mailto:<?= esc($supportMail, 'attr') ?>"><?= esc($supportMail) ?></a>.
