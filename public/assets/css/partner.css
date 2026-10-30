@@ -147,6 +147,7 @@ a.pp-card:hover, a.pp-card:focus-visible {
     padding-left: calc(14px + .5em);
 }
 .pp-btn {
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -251,7 +252,7 @@ a.pp-card:hover, a.pp-card:focus-visible {
 /* Sign-in: the "or" between the code form and the Microsoft button. */
 .whpc-login__or { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; color: var(--whpc-muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.08em; }
 .whpc-login__or::before, .whpc-login__or::after { content: ""; flex: 1; border-top: 1px solid var(--whpc-border, #d9e0e6); }
-#microsoftSignIn { text-decoration: none; }
+#microsoftSignIn { box-sizing: border-box; text-decoration: none; }
 
 .pp-btn--danger { color: #b3261e; border-color: #e6b8b4; }
 .pp-btn--danger:hover { background: #fbeceb; }
