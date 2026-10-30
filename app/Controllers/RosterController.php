@@ -61,6 +61,28 @@ class RosterController extends BaseController
     {
       $all = array_merge($all, $p['properties']);
     }
+    $cfg = config(Partner::class);
+    // Headcount per position (current people, by main position) and open positions per role.
+    $summary = [];
+    foreach ($people as $p)
+    {
+      if ($p['end_date'] === null)
+      {
+        $summary[$p['position']]['people'] = ($summary[$p['position']]['people'] ?? 0) + 1;
+      }
+    }
+    foreach ((new \App\Models\VacancyModel())->openFor((int)$org['id']) as $v)
+    {
+      $summary[$v['role']]['open'] = ($summary[$v['role']]['open'] ?? 0) + 1;
+    }
+    $ordered = [];
+    foreach (array_merge($cfg->positionNames(), array_keys($summary)) as $pos)
+    {
+      if (isset($summary[$pos]) && !isset($ordered[$pos]))
+      {
+        $ordered[$pos] = ['people' => $summary[$pos]['people'] ?? 0, 'open' => $summary[$pos]['open'] ?? 0];
+      }
+    }
     return view('pages/roster/index', [
       'title' => 'Staff roster · ' . $org['name'],
       'crumbs' => [['Home', '/'], ['Staff roster', null]],
@@ -68,6 +90,8 @@ class RosterController extends BaseController
       'pmcs' => $this->orgChoices(),
       'people' => $people,
       'names' => $this->names($org, $all),
+      'positions' => $cfg->positions,
+      'summary' => $ordered,
       'showDeparted' => (bool)$this->request->getGet('departed'),
     ]);
   }
@@ -156,7 +180,14 @@ class RosterController extends BaseController
   }
   private function form(array $org, ?array $person, ?array $values)
   {
-    $values = $values ?? ($person ? $person : ['properties' => [], 'roles' => []]);
+    if ($values === null && $person === null)
+    {
+      // From the Properties page: the role and property the person is being added for.
+      $pos = (string)$this->request->getGet('position');
+      $prop = (string)$this->request->getGet('property');
+      $values = ['properties' => $prop !== '' ? [$prop] : [], 'roles' => [], 'position' => in_array($pos, config(Partner::class)->positionNames(), true) ? $pos : ''];
+    }
+    $values = $values ?? $person;
     return view('pages/roster/form', [
       'title' => ($person ? 'Edit ' . $person['name'] : 'Add a person') . ' · ' . $org['name'],
       'crumbs' => [['Home', '/'], ['Staff roster', 'roster'], [$person ? 'Edit ' . $person['name'] : 'Add a person', null]],

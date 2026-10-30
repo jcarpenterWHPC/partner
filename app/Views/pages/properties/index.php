@@ -39,9 +39,9 @@ $services = \App\Models\PmcModel::isServices($pmc);
     <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
 <?php endif; ?>
 <?= view('partials/help', ['id' => 'properties', 'title' => 'How this works', 'tips' => [
-    'Each column is a role every property should have filled: ' . esc(implode(', ', $expected)) . '. A name means it is filled; <span class="pp-open">OPEN</span> means nobody holds it. Red means OPEN with no note on who is covering.',
-    '<strong>Someone left:</strong> click their name and enter their end date. <strong>Someone new:</strong> <strong>Add a person</strong> and tick the property; the OPEN position closes itself.',
-    '<strong>Record vacancy</strong> / <strong>Update</strong>: say since when the position is open and who is looking after the property meanwhile.',
+    'Each column is a role every property should have filled: ' . esc(implode(', ', $expected)) . '. A name means WHPC has that person on file.',
+    '<strong>Nobody on file</strong> means WHPC has no one listed for that role here. Click it: either add the person who does the job, or mark the position vacant with the date and who is covering.',
+    '<strong>OPEN since</strong> a date is a vacancy you recorded. Red means no note yet on who is covering; <strong>Update</strong> adds it. <strong>Someone left:</strong> click their name and enter their end date. <strong>Someone new:</strong> <strong>Add a person</strong> and tick the property; the open position closes itself.',
     '<strong>Also</strong> lists people at the property in other roles. <strong>Download</strong> gives you the current assignments as a spreadsheet.',
 ]]) ?>
 <div class="pp-toolbar">
@@ -77,9 +77,14 @@ $services = \App\Models\PmcModel::isServices($pmc);
                     <?php endforeach; ?>
                 <?php else: ?>
                     <?php $attn = $v === null || trim((string)$v['coverage']) === ''; ?>
-                    <span class="pp-open <?= $attn ? 'pp-open--attn' : '' ?>">OPEN<?= $v !== null && $v['open_since'] ? ' since ' . esc($v['open_since']) : '' ?></span>
-                    <?php if ($v !== null && trim((string)$v['coverage']) !== ''): ?><span class="pp-cell__sub">Covered by <?= esc($v['coverage']) ?></span><?php endif; ?>
-                    <a class="pp-cell__act" href="<?= base_url('properties/open?' . http_build_query(['property' => $pn, 'role' => $role])) ?>"><?= $v === null ? 'Record vacancy' : 'Update' ?></a>
+                    <?php if ($v === null): ?>
+                    <span class="pp-open pp-open--attn">Nobody on file</span>
+                    <a class="pp-cell__act" href="<?= base_url('properties/open?' . http_build_query(['property' => $pn, 'role' => $role])) ?>">Add or mark vacant</a>
+                    <?php else: ?>
+                    <span class="pp-open <?= $attn ? 'pp-open--attn' : '' ?>">OPEN<?= $v['open_since'] ? ' since ' . esc($v['open_since']) : '' ?></span>
+                    <?php if (!$attn): ?><span class="pp-cell__sub">Covered by <?= esc($v['coverage']) ?></span><?php endif; ?>
+                    <a class="pp-cell__act" href="<?= base_url('properties/open?' . http_build_query(['property' => $pn, 'role' => $role])) ?>">Update</a>
+                    <?php endif; ?>
                 <?php endif; ?>
             </td>
             <?php endforeach; ?>
