@@ -11,96 +11,83 @@ use App\Models\StaffModel;
 use Config\Partner;
 
 /**
- * A PMC's staff roster. A PMC user works on their own company; an admin picks one.
+ * An organisation's staff roster. A partner user works on their own; an admin picks one.
  */
 class RosterController extends BaseController
 {
-  /** The PMC in scope, or null when an admin has not chosen one. */
-  private function pmc(): ?array
+  private function roster(array $org): Roster
   {
-    $u = session('user');
-    $pmcs = new PmcModel();
-    if (!empty($u['pmc_id']))
-    {
-      return $pmcs->find((int)$u['pmc_id']);
-    }
-    if (empty($u['is_admin']))
-    {
-      return null;
-    }
-    $want = (int)($this->request->getGet('pmc') ?: session('admin_pmc') ?: 0);
-    $pmc = $want > 0 ? $pmcs->find($want) : null;
-    if ($pmc === null)
-    {
-      $pmc = $pmcs->active()[0] ?? null;
-    }
-    if ($pmc !== null)
-    {
-      session()->set('admin_pmc', (int)$pmc['id']);
-    }
-    return $pmc;
+    return new Roster((int)$org['id'], (int)(session('user')['id'] ?? 0));
   }
-  private function roster(array $pmc): Roster
-  {
-    return new Roster((int)$pmc['id'], (int)(session('user')['id'] ?? 0));
-  }
-  /** @return array<string,string> property number => name, for this PMC plus any numbers in $extra */
-  private function names(array $pmc, array $extra = []): array
+  /**
+   * Property number => label, for everything this organisation may assign plus any
+   * numbers in $extra (a person's own, even once retired). A service agency sees whose
+   * property each one is.
+   *
+   * @return array<string,string>
+   */
+  private function names(array $org, array $extra = []): array
   {
     $props = new PropertyModel();
-    $rows = $props->forPmc((int)$pmc['id']);
-    $missing = array_diff(array_map('strval', $extra), array_column($rows, 'property_number'));
+    $rows = $props->forOrg($org);
+    $missing = array_diff(array_map('strval', $extra), array_map('strval', array_column($rows, 'property_number')));
     if ($missing !== [])
     {
       $rows = array_merge($rows, $props->whereIn('property_number', array_values($missing))->findAll());
     }
+    $services = PmcModel::isServices($org);
     $out = [];
     foreach ($rows as $r)
     {
-      $out[(string)$r['property_number']] = (string)$r['name'] . ((int)$r['is_active'] === 1 ? '' : ' (no longer managed)');
+      $label = (string)$r['name'];
+      if ($services && (string)$r['management_co'] !== '')
+      {
+        $label .= ' · ' . $r['management_co'];
+      }
+      $out[(string)$r['property_number']] = $label . ((int)$r['is_active'] === 1 ? '' : ' (no longer managed)');
     }
     return $out;
   }
   public function index()
   {
-    $pmc = $this->pmc();
-    if ($pmc === null)
+    $org = $this->org();
+    if ($org === null)
     {
-      return redirect()->to('/admin/pmcs')->with('error', 'No management company has been synced yet.');
+      return redirect()->to('/admin/pmcs')->with('error', 'No organization has been synced yet.');
     }
-    $people = (new StaffModel())->forPmc((int)$pmc['id']);
+    $people = (new StaffModel())->forPmc((int)$org['id']);
     $all = [];
     foreach ($people as $p)
     {
       $all = array_merge($all, $p['properties']);
     }
     return view('pages/roster/index', [
-      'title' => 'Staff roster · ' . $pmc['name'],
+      'title' => 'Staff roster · ' . $org['name'],
       'crumbs' => [['Home', '/'], ['Staff roster', null]],
-      'pmc' => $pmc,
-      'pmcs' => !empty(session('user')['is_admin']) ? (new PmcModel())->active() : [],
+      'pmc' => $org,
+      'pmcs' => $this->orgChoices(),
       'people' => $people,
-      'names' => $this->names($pmc, $all),
+      'names' => $this->names($org, $all),
       'showDeparted' => (bool)$this->request->getGet('departed'),
     ]);
   }
   public function create()
   {
-    $pmc = $this->pmc();
-    if ($pmc === null)
+    $org = $this->org();
+    if ($org === null)
     {
       return redirect()->to('/roster');
     }
-    return $this->form($pmc, null, old('name') !== null ? $this->roster($pmc)->clean($this->request->getPost() ?: []) : null);
+    return $this->form($org, null, old('name') !== null ? $this->roster($org)->clean($this->request->getPost() ?: []) : null);
   }
   public function store()
   {
-    $pmc = $this->pmc();
-    if ($pmc === null)
+    $org = $this->org();
+    if ($org === null)
     {
       return redirect()->to('/roster');
     }
-    $roster = $this->roster($pmc);
+    $roster = $this->roster($org);
     $clean = $roster->clean($this->request->getPost() ?: []);
     $errors = $roster->validate($clean);
     if ($errors !== [])
@@ -108,23 +95,23 @@ class RosterController extends BaseController
       return redirect()->back()->withInput()->with('errors', $errors);
     }
     $id = $roster->add($clean);
-    ActivityLogModel::record('roster.added', (int)session('user')['id'], (string)session('user')['email'], $pmc['name'] . ' #' . $id . ' ' . $clean['name']);
+    ActivityLogModel::record('roster.added', (int)session('user')['id'], (string)session('user')['email'], $org['name'] . ' #' . $id . ' ' . $clean['name']);
     return redirect()->to('/roster')->with('success', $clean['name'] . ' was added.');
   }
   public function edit(int $id)
   {
-    $pmc = $this->pmc();
-    $person = $pmc === null ? null : $this->roster($pmc)->person($id);
+    $org = $this->org();
+    $person = $org === null ? null : $this->roster($org)->person($id);
     if ($person === null)
     {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     }
-    return $this->form($pmc, $person, old('name') !== null ? $this->roster($pmc)->clean($this->request->getPost() ?: []) : null);
+    return $this->form($org, $person, old('name') !== null ? $this->roster($org)->clean($this->request->getPost() ?: []) : null);
   }
   public function update(int $id)
   {
-    $pmc = $this->pmc();
-    $roster = $pmc === null ? null : $this->roster($pmc);
+    $org = $this->org();
+    $roster = $org === null ? null : $this->roster($org);
     if ($roster === null || $roster->person($id) === null)
     {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
@@ -138,7 +125,7 @@ class RosterController extends BaseController
     $r = $roster->update($id, $clean);
     if ($r['action'] !== 'unchanged')
     {
-      ActivityLogModel::record('roster.' . $r['action'], (int)session('user')['id'], (string)session('user')['email'], $pmc['name'] . ' #' . $id . ' ' . $clean['name'] . ': ' . implode(', ', array_keys($r['changes'])));
+      ActivityLogModel::record('roster.' . $r['action'], (int)session('user')['id'], (string)session('user')['email'], $org['name'] . ' #' . $id . ' ' . $clean['name'] . ': ' . implode(', ', array_keys($r['changes'])));
     }
     $said = match ($r['action'])
     {
@@ -147,12 +134,13 @@ class RosterController extends BaseController
       'unchanged' => 'Nothing changed.',
       default => $clean['name'] . ' was updated.',
     };
-    return redirect()->to('/roster')->with('success', $said);
+    $back = $this->request->getPost('back') === 'properties' ? '/properties' : '/roster';
+    return redirect()->to($back)->with('success', $said);
   }
   public function history(int $id)
   {
-    $pmc = $this->pmc();
-    $person = $pmc === null ? null : $this->roster($pmc)->person($id);
+    $org = $this->org();
+    $person = $org === null ? null : $this->roster($org)->person($id);
     if ($person === null)
     {
       throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
@@ -160,24 +148,25 @@ class RosterController extends BaseController
     return view('pages/roster/history', [
       'title' => 'History · ' . $person['name'],
       'crumbs' => [['Home', '/'], ['Staff roster', 'roster'], ['Edit ' . $person['name'], 'roster/' . (int)$person['id'] . '/edit'], ['History', null]],
-      'pmc' => $pmc,
+      'pmc' => $org,
       'person' => $person,
-      'entries' => (new StaffChangeModel())->recent((int)$pmc['id'], 500),
-      'names' => $this->names($pmc, $person['properties']),
+      'entries' => (new StaffChangeModel())->recent((int)$org['id'], 500),
+      'names' => $this->names($org, $person['properties']),
     ]);
   }
-  private function form(array $pmc, ?array $person, ?array $values)
+  private function form(array $org, ?array $person, ?array $values)
   {
-    $values = $values ?? ($person ? $person + ['properties' => $person['properties']] : ['properties' => []]);
+    $values = $values ?? ($person ? $person : ['properties' => [], 'roles' => []]);
     return view('pages/roster/form', [
-      'title' => ($person ? 'Edit ' . $person['name'] : 'Add a person') . ' · ' . $pmc['name'],
+      'title' => ($person ? 'Edit ' . $person['name'] : 'Add a person') . ' · ' . $org['name'],
       'crumbs' => [['Home', '/'], ['Staff roster', 'roster'], [$person ? 'Edit ' . $person['name'] : 'Add a person', null]],
-      'pmc' => $pmc,
+      'pmc' => $org,
       'person' => $person,
       'v' => $values,
       'positions' => config(Partner::class)->positions,
-      'names' => $this->names($pmc, $person['properties'] ?? []),
+      'names' => $this->names($org, $person['properties'] ?? []),
       'errors' => session()->getFlashdata('errors') ?: [],
+      'back' => $this->request->getGet('back') === 'properties' || $this->request->getPost('back') === 'properties' ? 'properties' : '',
     ]);
   }
 }

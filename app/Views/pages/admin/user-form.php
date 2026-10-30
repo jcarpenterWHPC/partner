@@ -30,7 +30,7 @@ $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fiel
             <?= $err('email') ?>
         </div>
         <div class="pp-field">
-            <label class="pp-label" for="u_pmc">Management company</label>
+            <label class="pp-label" for="u_pmc">Organization</label>
             <select class="pp-input pp-input--select" id="u_pmc" name="pmc_id" <?= (int)$user['is_admin'] === 1 ? '' : 'required' ?>>
                 <option value=""></option>
                 <?php foreach ($pmcs as $p): ?>

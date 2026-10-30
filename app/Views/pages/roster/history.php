@@ -6,10 +6,13 @@
  * @var array<string,string> $names
  */
 $mine = array_values(array_filter($entries, static fn(array $e): bool => (int)$e['staff_id'] === (int)$person['id']));
-$label = static fn(string $f): string => ucfirst(str_replace('_', ' ', $f));
-$show = static function ($v) use ($names): string {
+$label = static fn(string $f): string => $f === 'email_na' ? 'Email N/A' : ucfirst(str_replace('_', ' ', $f));
+$show = static function ($v) use ($names, $person): string {
     if (is_array($v)) {
-        $n = array_map(static fn(string $k): string => $names[$k] ?? $k, array_map('strval', $v));
+        $n = [];
+        foreach (\App\Libraries\Roster::rolesFromLog($v, (string)$person['position']) as $k => $role) {
+            $n[] = ($names[(string)$k] ?? (string)$k) . ($role !== '' ? ' · ' . $role : '');
+        }
         sort($n);
         return $n ? implode(', ', $n) : '—';
     }

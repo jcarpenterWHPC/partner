@@ -25,6 +25,10 @@ $routes->group('', ['filter' => 'auth'], static function (RouteCollection $route
   $routes->get('roster/(:num)/edit', 'RosterController::edit/$1');
   $routes->post('roster/(:num)', 'RosterController::update/$1');
   $routes->get('roster/(:num)/history', 'RosterController::history/$1');
+  $routes->get('properties', 'PropertiesController::index');
+  $routes->get('properties/export', 'PropertiesController::export');
+  $routes->get('properties/open', 'PropertiesController::open');
+  $routes->post('properties/open', 'PropertiesController::openSave');
 });
 
 $routes->group('admin', ['filter' => ['auth', 'admin']], static function (RouteCollection $routes)
@@ -36,6 +40,7 @@ $routes->group('admin', ['filter' => ['auth', 'admin']], static function (RouteC
   $routes->post('users/(:num)', 'AdminController::userUpdate/$1');
   $routes->post('users/(:num)/delete', 'AdminController::userDelete/$1');
   $routes->get('pmcs', 'AdminController::pmcs');
+  $routes->post('pmcs', 'AdminController::pmcStore');
   $routes->post('pmcs/sync', 'AdminController::sync');
   $routes->get('changes', 'AdminController::changes');
 });

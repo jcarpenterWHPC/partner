@@ -43,9 +43,19 @@ class Partner extends BaseConfig
     'Maintenance' => 'Maintenance Technician',
     'Leasing Agent' => 'Leasing Agent',
     'Service Coordinator' => 'Service Coordinator',
-    'Service Coord Supervisor' => 'Service Coordinator',
-    'FSS Coordinator' => 'Service Coordinator',
+    'Service Coord Supervisor' => 'Service Coord Supervisor',
+    'FSS Coordinator' => 'FSS Coordinator',
     'Executive' => 'Other',
+  ];
+  /**
+   * The positions every property is expected to have filled, by organisation kind:
+   * the columns of the Properties page, and what counts as a vacancy.
+   *
+   * @var array<string,list<string>>
+   */
+  public array $propertyRoles = [
+    'management' => ['Regional Manager', 'Site Manager', 'Maintenance Technician'],
+    'services' => ['Service Coordinator', 'Service Coord Supervisor'],
   ];
   /** Who a partner writes to when they cannot sign in. */
   public string $supportMail = 'BusinessSystems@whpc.com';
@@ -76,7 +86,8 @@ class Partner extends BaseConfig
     'Property / site management' => ['Site Manager', 'Assistant Manager'],
     'Maintenance' => ['Maintenance Supervisor', 'Maintenance Technician'],
     'Regional / portfolio management' => ['Regional Manager', 'Regional Vice President'],
-    'Leasing, compliance and office' => ['Leasing Agent', 'Compliance Specialist', 'Service Coordinator', 'Other'],
+    'Service coordination' => ['Service Coordinator', 'Service Coord Supervisor', 'FSS Coordinator'],
+    'Leasing, compliance and office' => ['Leasing Agent', 'Compliance Specialist', 'Other'],
   ];
   /** @return list<string> every position, flat */
   public function positionNames(): array

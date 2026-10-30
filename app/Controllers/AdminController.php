@@ -123,7 +123,7 @@ class AdminController extends BaseController
     $pmc = $pmcId > 0 ? (new PmcModel())->find($pmcId) : null;
     if ($pmc === null && (int)($current['is_admin'] ?? 0) !== 1)
     {
-      $errors['pmc_id'] = 'Choose the management company.';
+      $errors['pmc_id'] = 'Choose the organization.';
     }
     if (!isset($errors['email']))
     {
@@ -162,16 +162,46 @@ class AdminController extends BaseController
     $propCounts = array_column($db->table('properties')->select('pmc_id, COUNT(*) AS n')->where('is_active', 1)->groupBy('pmc_id')->get()->getResultArray(), 'n', 'pmc_id');
     $staffCounts = array_column($db->table('staff')->select('pmc_id, COUNT(*) AS n')->where('end_date', null)->groupBy('pmc_id')->get()->getResultArray(), 'n', 'pmc_id');
     $userCounts = array_column($db->table('users')->select('pmc_id, COUNT(*) AS n')->where('is_active', 1)->groupBy('pmc_id')->get()->getResultArray(), 'n', 'pmc_id');
+    $openCounts = array_column($db->table('vacancies')->select('pmc_id, COUNT(*) AS n')->where('filled_at', null)->groupBy('pmc_id')->get()->getResultArray(), 'n', 'pmc_id');
     $last = (new PropertyModel())->selectMax('synced_at')->first();
     return view('pages/admin/pmcs', [
-      'title' => 'Management companies',
-      'crumbs' => [['Home', '/'], ['Management companies', null]],
+      'title' => 'Organizations',
+      'crumbs' => [['Home', '/'], ['Organizations', null]],
       'pmcs' => (new PmcModel())->orderBy('name')->findAll(),
+      'kinds' => PmcModel::KINDS,
       'propCounts' => $propCounts,
       'staffCounts' => $staffCounts,
       'userCounts' => $userCounts,
+      'openCounts' => $openCounts,
       'lastSync' => $last['synced_at'] ?? null,
+      'errors' => session()->getFlashdata('errors') ?: [],
     ]);
+  }
+  /** An organisation Assets does not list as a management company: a service agency, usually. */
+  public function pmcStore()
+  {
+    $name = trim((string)$this->request->getPost('name'));
+    $kind = (string)$this->request->getPost('kind');
+    $errors = [];
+    if ($name === '' || mb_strlen($name) > 255)
+    {
+      $errors['name'] = 'Enter the organization\'s name.';
+    }
+    elseif ((new PmcModel())->where('LOWER(name)', mb_strtolower($name))->first() !== null)
+    {
+      $errors['name'] = 'That organization is already listed.';
+    }
+    if (!isset(PmcModel::KINDS[$kind]))
+    {
+      $errors['kind'] = 'Choose what kind of organization it is.';
+    }
+    if ($errors !== [])
+    {
+      return redirect()->to('/admin/pmcs')->withInput()->with('errors', $errors);
+    }
+    (new PmcModel())->insert(['name' => $name, 'kind' => $kind, 'is_active' => 1]);
+    ActivityLogModel::record('admin.org_added', (int)session('user')['id'], (string)session('user')['email'], $name . ' (' . $kind . ')');
+    return redirect()->to('/admin/pmcs')->with('success', $name . ' was added.');
   }
   public function sync()
   {
@@ -190,7 +220,7 @@ class AdminController extends BaseController
       return redirect()->to('/admin/pmcs')->with('error', 'The intranet\'s property list came back empty; nothing changed.');
     }
     $r = PropertySync::apply($rows);
-    $msg = sprintf('Synced: %d companies added, %d properties added, %d updated, %d retired.', $r['pmcs_added'], $r['properties_added'], $r['properties_updated'], $r['properties_retired']);
+    $msg = sprintf('Synced: %d organizations added, %d properties added, %d updated, %d retired.', $r['pmcs_added'], $r['properties_added'], $r['properties_updated'], $r['properties_retired']);
     $cfg = config(Partner::class);
     try
     {

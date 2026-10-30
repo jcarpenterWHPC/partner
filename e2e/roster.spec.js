@@ -98,7 +98,7 @@ test('an admin sees every company, the accounts and the change log', async ({ pa
   await page.goto('/admin/pmcs');
   const pmcRow = page.locator('#pmcTable tbody tr', { hasText: PMC });
   await expect(pmcRow).toHaveCount(1);
-  await pmcRow.locator('a').click();
+  await pmcRow.locator('a', { hasText: 'Roster' }).click();
   await expect(page).toHaveURL(/\/roster/);
   await expect(page.locator('#pmcPick')).toBeVisible();
   await page.click('#toggleDeparted');

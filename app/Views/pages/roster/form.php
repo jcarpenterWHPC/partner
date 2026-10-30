@@ -2,14 +2,22 @@
 /**
  * @var array                       $pmc
  * @var array|null                  $person
- * @var array                       $v         field values (old input, or the person)
+ * @var array                       $v         field values (old input, or the person); `roles` number => role
  * @var array<string,list<string>>  $positions
  * @var array<string,string>        $names     property number => name
  * @var array<string,string>        $errors
+ * @var string                      $back      'properties' when the Properties page sent us here
  */
 $val = static fn(string $f): string => esc((string)($v[$f] ?? ''), 'attr');
 $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fielderror">' . esc($errors[$f]) . '</div>' : '';
 $chosen = array_map('strval', $v['properties'] ?? []);
+$roles = [];
+foreach ((array)($v['roles'] ?? []) as $k => $r) {
+    $roles[(string)$k] = (string)$r;
+}
+$position = (string)($v['position'] ?? '');
+$emailNa = !empty($v['email_na']);
+$cancel = base_url($back === 'properties' ? 'properties' : 'roster');
 ?>
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
@@ -18,13 +26,14 @@ $chosen = array_map('strval', $v['properties'] ?? []);
         <h1 class="pp-h1"><?= $person ? 'Edit ' . esc($person['name']) : 'Add a person' ?></h1>
         <p class="pp-sub"><?= esc($pmc['name']) ?></p>
     </div>
-    
+
 </div>
 <?php if ($errors): ?>
     <div class="whpc-alert whpc-alert--error" role="alert"><i class="bx bx-error-circle"></i><span>Check the highlighted fields.</span></div>
 <?php endif; ?>
 <form method="post" action="<?= base_url($person ? 'roster/' . (int)$person['id'] : 'roster') ?>" class="pp-form pp-form--wide" id="personForm">
     <?= csrf_field() ?>
+    <?php if ($back !== ''): ?><input type="hidden" name="back" value="<?= esc($back, 'attr') ?>"><?php endif; ?>
     <div class="pp-grid">
         <div class="pp-field pp-field--2">
             <label class="pp-label" for="name">Name</label>
@@ -38,7 +47,7 @@ $chosen = array_map('strval', $v['properties'] ?? []);
                 <?php foreach ($positions as $group => $list): ?>
                 <optgroup label="<?= esc($group, 'attr') ?>">
                     <?php foreach ($list as $pos): ?>
-                    <option value="<?= esc($pos, 'attr') ?>" <?= ($v['position'] ?? '') === $pos ? 'selected' : '' ?>><?= esc($pos) ?></option>
+                    <option value="<?= esc($pos, 'attr') ?>" <?= $position === $pos ? 'selected' : '' ?>><?= esc($pos) ?></option>
                     <?php endforeach; ?>
                 </optgroup>
                 <?php endforeach; ?>
@@ -52,7 +61,8 @@ $chosen = array_map('strval', $v['properties'] ?? []);
         </div>
         <div class="pp-field pp-field--2">
             <label class="pp-label" for="email">Work email</label>
-            <input class="pp-input" id="email" name="email" type="email" value="<?= $val('email') ?>" maxlength="255">
+            <input class="pp-input" id="email" name="email" type="email" value="<?= $val('email') ?>" maxlength="255" <?= $emailNa ? 'disabled' : '' ?>>
+            <label class="pp-check pp-check--inline"><input type="checkbox" id="email_na" name="email_na" value="1" <?= $emailNa ? 'checked' : '' ?>> <span>N/A, this person has no work email</span></label>
             <?= $err('email') ?>
         </div>
         <div class="pp-field">
@@ -76,18 +86,28 @@ $chosen = array_map('strval', $v['properties'] ?? []);
             <?= $err('end_date') ?>
         </div>
         <div class="pp-field pp-field--4">
-            <span class="pp-label">Properties</span>
+            <span class="pp-label">Properties <span class="pp-muted">(and their role there, when it is not their position)</span></span>
             <?php if ($names === []): ?>
                 <p class="pp-muted">No properties are listed for <?= esc($pmc['name']) ?> yet.</p>
             <?php else: ?>
             <input class="pp-input pp-input--filter" type="search" id="propFilter" placeholder="Filter…" aria-label="Filter properties">
             <div class="pp-checks" id="propChecks">
-                <?php foreach ($names as $num => $label): ?>
-                <label class="pp-check"><input type="checkbox" name="properties[]" value="<?= esc((string)$num, 'attr') ?>" <?= in_array((string)$num, $chosen, true) ? 'checked' : '' ?>> <span><?= esc($label) ?> <span class="pp-muted"><?= esc((string)$num) ?></span></span></label>
+                <?php foreach ($names as $num => $label): $num = (string)$num; $on = in_array($num, $chosen, true); $role = $roles[$num] ?? ''; $differs = $on && $role !== '' && $role !== $position; ?>
+                <label class="pp-check">
+                    <input type="checkbox" name="properties[]" value="<?= esc($num, 'attr') ?>" <?= $on ? 'checked' : '' ?>>
+                    <span><?= esc($label) ?> <span class="pp-muted"><?= esc($num) ?></span></span>
+                    <select class="pp-input pp-input--select pp-role" name="roles[<?= esc($num, 'attr') ?>]" aria-label="Role at <?= esc($label, 'attr') ?>" <?= $on ? '' : 'hidden' ?>>
+                        <option value="">Same as position</option>
+                        <?php foreach ($positions as $group => $list): foreach ($list as $pos): ?>
+                        <option value="<?= esc($pos, 'attr') ?>" <?= $differs && $role === $pos ? 'selected' : '' ?>><?= esc($pos) ?></option>
+                        <?php endforeach; endforeach; ?>
+                    </select>
+                </label>
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
             <?= $err('properties') ?>
+            <?= $err('roles') ?>
         </div>
         <div class="pp-field pp-field--4">
             <label class="pp-label" for="notes">Notes</label>
@@ -97,7 +117,7 @@ $chosen = array_map('strval', $v['properties'] ?? []);
     </div>
     <div class="pp-actions pp-actions--form">
         <button type="submit" class="pp-btn pp-btn--primary" id="savePerson"><?= $person ? 'Save changes' : 'Add to the roster' ?></button>
-        <a class="pp-btn pp-btn--ghost" href="<?= base_url('roster') ?>">Cancel</a>
+        <a class="pp-btn pp-btn--ghost" href="<?= $cancel ?>">Cancel</a>
     </div>
 </form>
 <?= $this->endSection() ?>
@@ -105,13 +125,26 @@ $chosen = array_map('strval', $v['properties'] ?? []);
 <script>
 (function () {
     var f = document.getElementById('propFilter'), box = document.getElementById('propChecks');
-    if (!f || !box) { return; }
-    f.addEventListener('input', function () {
-        var q = f.value.trim().toLowerCase();
-        box.querySelectorAll('.pp-check').forEach(function (l) {
-            l.hidden = q !== '' && l.textContent.toLowerCase().indexOf(q) === -1 && !l.querySelector('input').checked;
+    if (f && box) {
+        f.addEventListener('input', function () {
+            var q = f.value.trim().toLowerCase();
+            box.querySelectorAll('.pp-check').forEach(function (l) {
+                l.hidden = q !== '' && l.textContent.toLowerCase().indexOf(q) === -1 && !l.querySelector('input').checked;
+            });
         });
-    });
+        box.addEventListener('change', function (e) {
+            if (e.target.type !== 'checkbox') { return; }
+            var sel = e.target.parentNode.querySelector('.pp-role');
+            if (sel) { sel.hidden = !e.target.checked; if (!e.target.checked) { sel.value = ''; } }
+        });
+    }
+    var na = document.getElementById('email_na'), email = document.getElementById('email');
+    if (na && email) {
+        na.addEventListener('change', function () {
+            email.disabled = na.checked;
+            if (na.checked) { email.value = ''; }
+        });
+    }
 })();
 </script>
 <?= $this->endSection() ?>

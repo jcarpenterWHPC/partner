@@ -1,6 +1,6 @@
 <?php
 /** @var list<array> $entries */
-$label = static fn(string $f): string => ucfirst(str_replace('_', ' ', $f));
+$label = static fn(string $f): string => $f === 'email_na' ? 'Email N/A' : ucfirst(str_replace('_', ' ', $f));
 ?>
 <?= $this->extend('layouts/main') ?>
 <?= $this->section('content') ?>
@@ -10,7 +10,7 @@ $label = static fn(string $f): string => ucfirst(str_replace('_', ' ', $f));
 </div>
 <div class="pp-tablewrap">
 <table class="pp-table" id="changesTable">
-    <thead><tr><th>When</th><th>Company</th><th>Person</th><th>Change</th><th>By</th></tr></thead>
+    <thead><tr><th>When</th><th>Organization</th><th>Person</th><th>Change</th><th>By</th></tr></thead>
     <tbody>
     <?php if (!$entries): ?><tr><td colspan="5" class="pp-empty">No changes yet.</td></tr><?php endif; ?>
     <?php foreach ($entries as $e): $c = json_decode((string)$e['changes'], true) ?: []; ?>

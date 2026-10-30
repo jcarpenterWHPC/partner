@@ -257,3 +257,19 @@ a.pp-card:hover, a.pp-card:focus-visible {
 .pp-crumbs a { color: var(--whpc-slate); text-decoration: none; font-weight: 600; }
 .pp-crumbs a:hover { text-decoration: underline; }
 .pp-crumbs [aria-current] { color: var(--whpc-navy, #243746); }
+
+/* Properties board */
+.pp-board td { vertical-align: top; }
+.pp-board .pp-cell__name { display: block; }
+.pp-board .pp-cell__sub { display: block; font-size: .85rem; color: var(--whpc-muted); }
+.pp-open { display: inline-block; padding: 2px 8px; border-radius: 6px; background: #fff1dc; color: #9a5a00; font-size: .78rem; font-weight: 700; letter-spacing: .04em; }
+.pp-open--attn { background: #f7e3e0; color: #8a2e22; }
+.pp-cell__act { font-size: .85rem; white-space: nowrap; }
+.pp-board tr.has-attn td:first-child { box-shadow: inset 3px 0 0 #c0392b; }
+.pp-toolbar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: 0 0 12px; }
+.pp-toolbar .pp-input--filter { max-width: 320px; }
+.pp-check--inline { display: inline-flex; align-items: center; gap: 6px; font-size: .95rem; }
+.pp-check .pp-role { margin-left: auto; min-width: 150px; max-width: 190px; font-size: .85rem; padding: 2px 6px; }
+.pp-check .pp-role[hidden] { display: none; }
+.pp-na { color: var(--whpc-muted); font-style: italic; }
+.pp-kind { font-size: .78rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--whpc-muted); }

@@ -65,14 +65,14 @@ final class ContactSyncTest extends CIUnitTestCase
     $this->assertSame(['Rene Mosback', 'Ruby Lopez'], array_column($people, 'name'));
     [$rene, $ruby] = $people;
     $this->assertSame(['Site Manager', 'Community Manager', 'ruby@meridian.test', '608-555-0101', ['10280', '10290'], 1], [$ruby['position'], $ruby['title'], $ruby['email'], $ruby['mobile_phone'], $ruby['properties'], (int)$ruby['contact_id']]);
-    $this->assertSame(['Regional Manager', ['10280', '10290']], [$rene['position'], $rene['properties']], 'the commonest role wins, and only the home PMC\'s properties are kept');
+    $this->assertSame(['Regional Manager', ['10280', '10290', '12140'], ['10280' => 'Regional Manager', '10290' => 'Regional Manager', '12140' => 'Regional Manager']], [$rene['position'], $rene['properties'], $rene['roles']], 'the commonest role wins; a company that is an organisation here keeps every property');
     $dawn = $staff->forPmc($gf)[0];
     $this->assertSame(['Maintenance Technician', '', 3], [$dawn['position'], $dawn['email'], (int)$dawn['contact_id']]);
     $changes = (new StaffChangeModel())->recent(null, 50);
     $this->assertCount(3, $changes);
     $this->assertSame(['imported'], array_values(array_unique(array_column($changes, 'action'))));
     $this->assertNull($changes[0]['user_id']);
-    $this->assertSame(['10280', '10290'], json_decode($changes[array_search('Ruby Lopez', array_column($changes, 'staff_name'), true)]['changes'], true)['properties']);
+    $this->assertSame(['#10280' => 'Site Manager', '#10290' => 'Site Manager'], json_decode($changes[array_search('Ruby Lopez', array_column($changes, 'staff_name'), true)]['changes'], true)['properties']);
 
     $again = ContactSync::apply($this->rows());
     $this->assertSame([0, 0, 0, 3], [$again['people_added'], $again['people_updated'], $again['people_departed'], $again['unchanged']]);
@@ -87,7 +87,7 @@ final class ContactSyncTest extends CIUnitTestCase
     // The PMC renames Dawn, gives Ruby a different title, and takes Ruby off the annex.
     $staff->update((int)$dawn['id'], ['name' => 'Dawn H.', 'email' => 'dawn@gf.test']);
     $staff->update((int)$ruby['id'], ['title' => 'Property Manager']);
-    $staff->setProperties((int)$ruby['id'], ['10280']);
+    $staff->setProperties((int)$ruby['id'], ['10280' => 'Site Manager']);
 
     $rows = $this->rows();
     $rows[6]['email'] = 'dawn.hastings@goldfinch.test';
@@ -95,21 +95,23 @@ final class ContactSyncTest extends CIUnitTestCase
     $rows[0]['job_title'] = 'Senior Community Manager';
     $rows[] = $this->row(1, '12140', 'Site Manager', 'Ruby Lopez', 'ruby@meridian.test');
     $r = ContactSync::apply($rows);
-    $this->assertSame([0, 1, 0, 2], [$r['people_added'], $r['people_updated'], $r['people_departed'], $r['unchanged']]);
+    $this->assertSame([0, 2, 0, 1], [$r['people_added'], $r['people_updated'], $r['people_departed'], $r['unchanged']]);
     $dawn = $staff->withProperties((int)$dawn['id']);
     $this->assertSame(['Dawn H.', 'dawn@gf.test', '920-555-0199'], [$dawn['name'], $dawn['email'], $dawn['mobile_phone']], 'edits kept, the blank phone filled');
     $ruby = $staff->withProperties((int)$ruby['id']);
-    $this->assertSame(['Property Manager', ['10280']], [$ruby['title'], $ruby['properties']], 'the annex the PMC removed is not put back, and 12140 is another PMC\'s');
-    $synced = (new StaffChangeModel())->where('action', 'synced')->findAll();
-    $this->assertCount(1, $synced);
-    $this->assertSame(['mobile_phone'], array_keys(json_decode($synced[0]['changes'], true)));
+    $this->assertSame(['Property Manager', ['10280' => 'Site Manager', '12140' => 'Site Manager']], [$ruby['title'], $ruby['roles']], 'the annex the PMC removed is not put back; the property Assets newly gave her is added with its role');
+    $synced = (new StaffChangeModel())->where('action', 'synced')->orderBy('id')->findAll();
+    $this->assertCount(2, $synced);
+    $keys = array_map(static fn(array $c): string => implode(',', array_keys(json_decode($c['changes'], true))), $synced);
+    sort($keys);
+    $this->assertSame(['mobile_phone', 'properties'], $keys);
 
     // Rene gains a Meridian property in Assets: it is added.
     $rows[] = $this->row(2, '10295', 'Regional Manager', 'Rene Mosback', 'rene@meridian.test');
     PropertySync::apply([['property_number' => '10295', 'name' => 'New Place', 'city' => 'Madison', 'region' => 'South', 'units' => 5, 'asset_manager' => 'A', 'management_co' => 'Meridian', 'status' => 'Active', 'is_entity' => 0]]);
     $r = ContactSync::apply($rows);
     $this->assertSame(1, $r['people_updated']);
-    $this->assertSame(['10280', '10290', '10295'], $staff->withProperties((int)$staff->where('contact_id', 2)->first()['id'])['properties']);
+    $this->assertSame(['10280', '10290', '10295', '12140'], $staff->withProperties((int)$staff->where('contact_id', 2)->first()['id'])['properties']);
   }
   public function testAContactGoneFromAssetsIsDepartedAndBackAgainReinstated(): void
   {
@@ -125,6 +127,37 @@ final class ContactSyncTest extends CIUnitTestCase
     $this->assertSame(1, $r['people_updated']);
     $this->assertNull($staff->find((int)$dawn['id'])['end_date']);
     $this->assertSame('reinstated', (new StaffChangeModel())->forStaff((int)$dawn['id'])[0]['action']);
+  }
+  public function testAServiceAgencysPeopleLandUnderItWithTheirRoleAtEachProperty(): void
+  {
+    $lss = (new PmcModel())->idFor('LSS', PmcModel::SERVICES);
+    $rows = $this->rows();
+    $rows[] = $this->row(8, '10280', 'Service Coordinator', 'Jess Johnson', 'jess@lss.test', '', 'LSS');
+    $rows[] = $this->row(8, '12140', 'Service Coord Supervisor', 'Jess Johnson', 'jess@lss.test', '', 'LSS');
+    $rows[] = $this->row(8, '10290', 'Service Coord Supervisor', 'Jess Johnson', 'jess@lss.test', '', 'LSS');
+    $rows[] = $this->row(9, '10280', 'FSS Coordinator', 'Fay Fss', 'fay@lss.test', '', 'LSS');
+    $r = ContactSync::apply($rows);
+    $this->assertSame(5, $r['people_added']);
+    $staff = new StaffModel();
+    $people = $staff->forPmc($lss);
+    $this->assertSame(['Fay Fss', 'Jess Johnson'], array_column($people, 'name'));
+    [$fay, $jess] = $people;
+    $this->assertSame(['Service Coord Supervisor', ['10280' => 'Service Coordinator', '10290' => 'Service Coord Supervisor', '12140' => 'Service Coord Supervisor']], [$jess['position'], $jess['roles']], 'properties of two management companies, the role Assets gives at each');
+    $this->assertSame('FSS Coordinator', $fay['position']);
+    $this->assertSame([], array_filter((new \App\Models\VacancyModel())->findAll(), static fn(array $v): bool => (int)$v['pmc_id'] === $lss), 'nothing open: every imported role is held');
+
+    // Jess leaves Assets: her three positions open as of today, for LSS to fill or cover.
+    $rows = array_values(array_filter($rows, static fn(array $x): bool => $x['contact_id'] !== 8));
+    ContactSync::apply($rows);
+    $open = (new \App\Models\VacancyModel())->openFor($lss);
+    $keys = array_keys($open);
+    sort($keys);
+    $this->assertSame(['10280|Service Coordinator', '10290|Service Coord Supervisor', '12140|Service Coord Supervisor'], $keys);
+    $this->assertSame(date('Y-m-d'), $open['10280|Service Coordinator']['open_since']);
+    // And back: reinstated with every property she had, so all three are filled again.
+    $rows[] = $this->row(8, '10280', 'Service Coordinator', 'Jess Johnson', 'jess@lss.test', '', 'LSS');
+    ContactSync::apply($rows);
+    $this->assertSame([], (new \App\Models\VacancyModel())->openFor($lss));
   }
   public function testADryRunCountsAndWritesNothing(): void
   {

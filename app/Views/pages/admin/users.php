@@ -34,7 +34,7 @@ $accounts = new \App\Libraries\Accounts();
             <?= $err('email') ?>
         </div>
         <div class="pp-field">
-            <label class="pp-label" for="u_pmc">Management company</label>
+            <label class="pp-label" for="u_pmc">Organization</label>
             <select class="pp-input pp-input--select" id="u_pmc" name="pmc_id" required>
                 <option value=""></option>
                 <?php foreach ($pmcs as $p): ?>
@@ -50,7 +50,7 @@ $accounts = new \App\Libraries\Accounts();
 </form>
 <div class="pp-tablewrap">
 <table class="pp-table" id="usersTable">
-    <thead><tr><th>Name</th><th>Email</th><th>Company</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead>
+    <thead><tr><th>Name</th><th>Email</th><th>Organization</th><th>Role</th><th>Last sign-in</th><th></th></tr></thead>
     <tbody>
     <?php foreach ($users as $u): ?>
         <tr class="<?= (int)$u['is_active'] === 1 ? '' : 'is-disabled' ?>" data-id="<?= (int)$u['id'] ?>">

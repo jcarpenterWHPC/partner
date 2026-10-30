@@ -123,7 +123,7 @@ final class RosterTest extends CIUnitTestCase
     $d = json_decode($c[1]['changes'], true);
     $this->assertSame(['name', 'properties'], array_keys($d));
     $this->assertSame(['from' => 'Sam Site', 'to' => 'Sam Sites'], $d['name']);
-    $this->assertSame(['from' => ['11600', '12140'], 'to' => ['12140']], $d['properties']);
+    $this->assertSame(['from' => ['#11600' => 'Site Manager', '#12140' => 'Site Manager'], 'to' => ['#12140' => 'Site Manager']], $d['properties']);
     $this->assertSame(['12140'], $staff->withProperties($id)['properties']);
 
     $this->as($this->jane)->post('roster/' . $id, $this->sam(['name' => 'Sam Sites', 'properties' => ['12140']]))->assertRedirectTo('/roster');
@@ -143,6 +143,76 @@ final class RosterTest extends CIUnitTestCase
     $this->as($this->jane)->post('roster/' . $id, $this->sam(['name' => 'Sam Sites', 'properties' => ['12140'], 'end_date' => '']))->assertRedirectTo('/roster');
     $this->assertSame('reinstated', $this->changes($id)[3]['action']);
     $this->assertCount(1, $staff->forPmc($this->gf, false), 'current again');
+  }
+  public function testARoleAtOnePropertyMayDifferFromThePositionAndEmailMayBeNa(): void
+  {
+    $this->as($this->jane)->post('roster', $this->sam(['email' => '', 'email_na' => '1', 'roles' => ['11600' => 'Service Coord Supervisor', '12140' => '']]))->assertRedirectTo('/roster');
+    $staff = new StaffModel();
+    $p = $staff->forPmc($this->gf)[0];
+    $this->assertSame([1, '', ['11600' => 'Service Coord Supervisor', '12140' => 'Site Manager']], [(int)$p['email_na'], $p['email'], $p['roles']]);
+    $list = $this->as($this->jane)->get('roster');
+    $list->assertSee('No email (N/A)');
+    $list->assertSee('Manor Drive Apartments - Suring · Service Coord Supervisor');
+    $this->as($this->jane)->get('roster/' . $p['id'] . '/edit')->assertSee('N/A, this person has no work email');
+    $this->as($this->jane)->post('roster/' . $p['id'], $this->sam(['email' => 'sam@pmc.test', 'email_na' => '1']))->assertRedirectTo('/roster');
+    $this->assertSame('', $staff->find($p['id'])['email'], 'N/A wins over a typed address');
+    $this->as($this->jane)->post('roster/' . $p['id'], $this->sam(['roles' => ['12140' => 'Astronaut']]))->assertRedirect();
+    $this->assertSame(['roles'], array_keys(session()->getFlashdata('errors') ?? []));
+  }
+  public function testAServiceAgencyCoversAnyonesPropertiesAndAManagementCompanyOnlyItsOwn(): void
+  {
+    $lss = (new PmcModel())->idFor('LSS', PmcModel::SERVICES);
+    $lee = ['id' => (int)(new UserModel())->insert(['email' => 'lee@lss.test', 'name' => 'Lee', 'pmc_id' => $lss, 'is_admin' => 0], true), 'email' => 'lee@lss.test', 'name' => 'Lee', 'pmc_id' => $lss, 'pmc_name' => 'LSS', 'is_admin' => false];
+    $this->as($lee)->get('roster/new')->assertSee('Parkview Gardens I · Koru');
+    $this->as($lee)->post('roster', $this->sam(['name' => 'Cory Coordinator', 'position' => 'Service Coordinator', 'properties' => ['12140', '12040']]))->assertRedirectTo('/roster');
+    $this->assertSame(['12040', '12140'], (new StaffModel())->forPmc($lss)[0]['properties']);
+    $this->as($lee)->post('roster', $this->sam(['name' => 'Gone Property', 'position' => 'Service Coordinator', 'properties' => ['10500']]))->assertRedirect();
+    $this->assertArrayHasKey('properties', session()->getFlashdata('errors') ?? [], 'retired properties are not on offer to anyone');
+    $this->as($this->kim)->post('roster', $this->sam(['properties' => ['12140']]))->assertRedirect();
+    $this->assertArrayHasKey('properties', session()->getFlashdata('errors') ?? []);
+  }
+  public function testThePropertiesPageShowsEachRoleFilledOrOpenAndVacanciesFollowTheRoster(): void
+  {
+    $vac = new \App\Models\VacancyModel();
+    $this->as($this->jane)->post('roster', $this->sam())->assertRedirectTo('/roster');
+    $id = (int)(new StaffModel())->forPmc($this->gf)[0]['id'];
+    $board = $this->as($this->jane)->get('properties');
+    $board->assertStatus(200);
+    $board->assertSee('Sam Site');
+    $board->assertSee('Record vacancy');
+    $this->assertSame([], $vac->findAll(), 'nothing has gone open yet; a never-staffed role is just empty');
+
+    // Jane records the regional manager role at Hearthside as open, with coverage.
+    $this->as($this->jane)->get('properties/open?property=12140&role=Regional+Manager')->assertSee('Record as open');
+    $this->as($this->jane)->post('properties/open', ['property' => '12140', 'role' => 'Regional Manager', 'open_since' => '2026-10-01', 'coverage' => 'Rene Mosback (interim)'])->assertRedirectTo('/properties');
+    $this->assertSame('Rene Mosback (interim)', $vac->openOne($this->gf, '12140', 'Regional Manager')['coverage']);
+    $this->as($this->jane)->get('properties')->assertSee('Covered by Rene Mosback (interim)');
+    $this->assert404(fn() => $this->as($this->kim)->post('properties/open', ['property' => '12140', 'role' => 'Regional Manager', 'open_since' => '2026-10-01']));
+    $this->as($this->jane)->post('properties/open', ['property' => '12140', 'role' => 'Regional Manager', 'open_since' => 'soon'])->assertRedirect();
+    $this->assertArrayHasKey('open_since', session()->getFlashdata('errors') ?? []);
+
+    // Sam departs: both site-manager positions open as of the end date; one is already covered when Sam is back.
+    $this->as($this->jane)->post('roster/' . $id, $this->sam(['end_date' => '2026-10-31']))->assertRedirectTo('/roster');
+    $open = $vac->openFor($this->gf);
+    $keys = array_keys($open);
+    sort($keys);
+    $this->assertSame(['11600|Site Manager', '12140|Regional Manager', '12140|Site Manager'], $keys);
+    $this->assertSame('2026-10-31', $open['12140|Site Manager']['open_since']);
+    $this->as($this->jane)->get('properties')->assertSee('OPEN since 2026-10-31');
+    $this->as($this->jane)->post('roster', $this->sam(['name' => 'New Hire', 'properties' => ['12140']]))->assertRedirectTo('/roster');
+    $keys = array_keys($vac->openFor($this->gf));
+    sort($keys);
+    $this->assertSame(['11600|Site Manager', '12140|Regional Manager'], $keys, 'filled at Hearthside, still open at Manor Drive');
+    $this->assertNotNull($vac->find($open['12140|Site Manager']['id'])['filled_at']);
+    // A regional manager arrives: the covered vacancy closes too.
+    $this->as($this->jane)->post('roster', $this->sam(['name' => 'Reg Ional', 'position' => 'Regional Manager', 'properties' => ['12140']]))->assertRedirectTo('/roster');
+    $this->assertSame(['11600|Site Manager'], array_keys($vac->openFor($this->gf)));
+
+    $csv = $this->as($this->jane)->get('properties/export');
+    $csv->assertStatus(200);
+    $csv->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+    $this->assertStringContainsString('11600,"Manor Drive Apartments - Suring",Suring,"Goldfinch Living","Site Manager",OPEN,,,,,2026-10-31,', $csv->response()->getBody());
+    $this->assertStringContainsString('"New Hire"', $csv->response()->getBody());
   }
   public function testOneCompanyNeverReachesAnothersPeople(): void
   {
@@ -191,6 +261,14 @@ final class RosterTest extends CIUnitTestCase
     $pmcs = $this->as($this->admin)->get('admin/pmcs');
     $pmcs->assertStatus(200);
     $pmcs->assertSee('Goldfinch Living');
+    $this->as($this->admin)->post('admin/pmcs', ['name' => 'LSS', 'kind' => 'services'])->assertRedirectTo('/admin/pmcs');
+    $this->assertSame('services', (new PmcModel())->byName('LSS')['kind']);
+    $this->as($this->admin)->post('admin/pmcs', ['name' => 'lss', 'kind' => 'services'])->assertRedirect();
+    $this->assertArrayHasKey('name', session()->getFlashdata('errors') ?? []);
+    $this->as($this->admin)->post('admin/pmcs', ['name' => 'Odd', 'kind' => 'club'])->assertRedirect();
+    $this->assertArrayHasKey('kind', session()->getFlashdata('errors') ?? []);
+    $this->as($this->admin)->get('admin/pmcs')->assertSee('Service agency');
+    $this->as($this->jane)->post('admin/pmcs', ['name' => 'Nope', 'kind' => 'services'])->assertStatus(403);
     $this->as($this->admin)->get('admin/users')->assertSee('New Person');
     $this->as($this->admin)->get('admin/changes')->assertSee('Kay Koru');
 

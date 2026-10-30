@@ -1,7 +1,7 @@
 <?php
 /**
  * @var array        $pmc
- * @var list<array>  $pmcs    every PMC (admins only; empty for a PMC user)
+ * @var list<array>  $pmcs    every organisation (admins only; empty for a partner user)
  * @var list<array>  $people
  * @var array<string,string> $names property number => name
  * @var bool         $showDeparted
@@ -9,8 +9,11 @@
 $current = array_filter($people, static fn(array $p): bool => $p['end_date'] === null);
 $departed = array_filter($people, static fn(array $p): bool => $p['end_date'] !== null);
 $rows = $showDeparted ? $people : $current;
-$propList = static function (array $numbers) use ($names): string {
-    $n = array_map(static fn(string $k): string => $names[$k] ?? $k, $numbers);
+$propList = static function (array $p) use ($names): string {
+    $n = [];
+    foreach ($p['roles'] as $k => $role) {
+        $n[] = ($names[(string)$k] ?? (string)$k) . ($role !== '' && $role !== $p['position'] ? ' · ' . $role : '');
+    }
     sort($n);
     return implode(', ', $n);
 };
@@ -22,7 +25,7 @@ $propList = static function (array $numbers) use ($names): string {
         <h1 class="pp-h1">Staff roster</h1>
         <?php if ($pmcs): ?>
         <form method="get" action="<?= base_url('roster') ?>" class="pp-form--inline pp-pmcpick">
-            <label class="pp-label" for="pmcPick">Company</label>
+            <label class="pp-label" for="pmcPick">Organization</label>
             <select class="pp-input pp-input--select" id="pmcPick" name="pmc" onchange="this.form.submit()">
                 <?php foreach ($pmcs as $p): ?>
                 <option value="<?= (int)$p['id'] ?>" <?= (int)$p['id'] === (int)$pmc['id'] ? 'selected' : '' ?>><?= esc($p['name']) ?></option>
@@ -34,6 +37,7 @@ $propList = static function (array $numbers) use ($names): string {
         <?php endif; ?>
     </div>
     <div class="pp-actions">
+        <a class="pp-btn pp-btn--ghost" href="<?= base_url('properties') ?>" id="toProperties"><i class="bx bx-building-house"></i> By property</a>
         <a class="pp-btn pp-btn--ghost" href="<?= base_url('roster?' . http_build_query(['departed' => $showDeparted ? null : 1])) ?>" id="toggleDeparted">
             <?= $showDeparted ? 'Hide departed' : 'Show departed (' . count($departed) . ')' ?>
         </a>
@@ -67,13 +71,14 @@ $propList = static function (array $numbers) use ($names): string {
             </td>
             <td><?= esc($p['position']) ?><?= $p['title'] !== '' ? '<br><span class="pp-muted">' . esc($p['title']) . '</span>' : '' ?></td>
             <td>
-                <?php if ($p['email'] !== ''): ?><a href="mailto:<?= esc($p['email'], 'attr') ?>"><?= esc($p['email']) ?></a><br><?php endif; ?>
+                <?php if ((int)$p['email_na'] === 1): ?><span class="pp-na">No email (N/A)</span><br>
+                <?php elseif ($p['email'] !== ''): ?><a href="mailto:<?= esc($p['email'], 'attr') ?>"><?= esc($p['email']) ?></a><br><?php endif; ?>
                 <?php if ($p['mobile_phone'] !== ''): ?><span class="pp-muted">M</span> <?= esc($p['mobile_phone']) ?><br><?php endif; ?>
                 <?php if ($p['office_phone'] !== ''): ?><span class="pp-muted">O</span> <?= esc($p['office_phone']) ?><?php endif; ?>
             </td>
-            <td class="pp-props" title="<?= esc($propList($p['properties']), 'attr') ?>">
+            <td class="pp-props" title="<?= esc($propList($p), 'attr') ?>">
                 <?php $n = count($p['properties']); ?>
-                <?= $n === 0 ? '<span class="pp-muted">—</span>' : esc($n === 1 ? $propList($p['properties']) : $n . ' properties') ?>
+                <?= $n === 0 ? '<span class="pp-muted">—</span>' : esc($n === 1 ? $propList($p) : $n . ' properties') ?>
             </td>
             <td><?= esc((string)$p['start_date']) ?></td>
             <td class="pp-rowactions">

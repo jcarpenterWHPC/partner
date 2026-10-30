@@ -43,25 +43,38 @@ WHPC WAF). TLS ends at CloudFront; the boxes serve plain HTTP on :80 and read
   `php spark partner:user`); a PMC user belongs to one PMC. The WHPC admins are the
   addresses in `Config\Partner::$admins` (secret `partner.admins`) and nobody else at
   WHPC can sign in; their accounts appear on first sign-in (`App\Libraries\Accounts`).
-- **Staff roster** (`RosterController`, `App\Libraries\Roster`): each PMC keeps its own
-  people — name, position (Config\Partner::$positions, named as Assets' contact roles),
-  title, email, phones, the properties they cover, start and end date. Nothing is deleted:
-  leaving is an end date, and every change is a row in `staff_changes` (field diffs), which
-  is what will later update Assets' contacts. A user only ever reaches their own PMC's
-  people; admins pick a PMC.
-- **Properties** come from the intranet: `partner:sync-properties` reads `home.assets`
+- **Organisations** (`pmcs`, `PmcModel`): a *management company* (Assets' management_co,
+  made by the property sync) owns properties; a *service agency* (kind `services`: LSS,
+  added by an admin on `/admin/pmcs`) staffs other companies' properties. A user belongs
+  to one organisation and only ever reaches its people.
+- **Staff roster** (`RosterController`, `App\Libraries\Roster`): each organisation keeps
+  its own people — name, main position (Config\Partner::$positions, named as Assets'
+  contact roles), title, email (or N/A), phones, start and end date, and the properties
+  they cover with their role at each (`staff_properties.role`, the position unless said
+  otherwise; Assets' own shape). Nothing is deleted: leaving is an end date, and every
+  change is a row in `staff_changes` (field diffs; `properties` is a `#number => role`
+  map), which is what will later update Assets' contacts. Admins pick an organisation.
+- **Properties** (`PropertiesController`): the same facts by property — every property
+  of the organisation with who holds each expected role (Config\Partner::$propertyRoles
+  per kind), or OPEN since a date with who is covering (`vacancies`, `App\Libraries\Vacancies`).
+  A vacancy opens itself when the last holder departs or is unassigned, closes itself
+  when someone is assigned, and can be recorded by hand for a never-staffed role. The
+  page downloads as CSV. Partner users edit people; the board only points at them.
+- **Properties data** come from the intranet: `partner:sync-properties` reads `home.assets`
   through the read-only `home` database group (user `partner_home_ro`, SELECT only) and
   fills `pmcs` + `properties`. Nightly on prod (`deploy/whpc-partner.cron`) and from the
   admin page. A property that disappears is retired, not deleted.
 - **People** come from the intranet too: `partner:sync-contacts` (`App\Libraries\ContactSync`)
   reads the read-only view `home.partner_property_contacts` (one row per contact,
-  property and live role) and seeds each PMC's roster: one entry per contact, position
-  from `Config\Partner::$contactRoles`, recorded as an `imported` change by nobody. Later
-  runs fill blanks and add new properties (`synced`), never overwrite a PMC's edits, and
-  mark a contact Assets no longer lists as departed. The same button and cron run both
-  syncs. Writing roster changes back to Assets is not designed yet; home reviews Assets
-  edits through its ChangeLogger, so that is a conversation with Joe, not direct writes.
-- **Admin** (`AdminController`, filter `admin`): accounts, management companies + sync,
+  property and live role) and seeds the rosters: one entry per contact under the
+  organisation named by their company (else the management company of their
+  properties), the role Assets gives at each property, position = the role held most,
+  recorded as an `imported` change by nobody. Later runs fill blanks and add new
+  properties (`synced`), never overwrite an organisation's edits, and mark a contact
+  Assets no longer lists as departed (which opens vacancies). The same button and cron
+  run both syncs. Writing roster changes back to Assets is not designed yet; home reviews
+  Assets edits through its ChangeLogger, so that is a conversation with Joe, not direct writes.
+- **Admin** (`AdminController`, filter `admin`): portal users, organisations + sync,
   recent changes.
 
 ## Sign-in
