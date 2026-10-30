@@ -81,7 +81,7 @@ $services = \App\Models\PmcModel::isServices($pmc);
                     <span class="pp-open pp-open--attn">Nobody on file</span>
                     <a class="pp-cell__act" href="<?= base_url('properties/open?' . http_build_query(['property' => $pn, 'role' => $role])) ?>">Add or mark vacant</a>
                     <?php else: ?>
-                    <span class="pp-open <?= $attn ? 'pp-open--attn' : '' ?>">OPEN<?= $v['open_since'] ? ' since ' . esc($v['open_since']) : '' ?></span>
+                    <span class="pp-open <?= $attn ? 'pp-open--attn' : '' ?>">OPEN<?= $v['open_since'] ? ' since ' . esc(nice_date($v['open_since'])) : '' ?></span>
                     <?php if (!$attn): ?><span class="pp-cell__sub">Covered by <?= esc($v['coverage']) ?></span><?php endif; ?>
                     <a class="pp-cell__act" href="<?= base_url('properties/open?' . http_build_query(['property' => $pn, 'role' => $role])) ?>">Update</a>
                     <?php endif; ?>

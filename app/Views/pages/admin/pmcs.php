@@ -16,7 +16,7 @@ $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fiel
 <div class="pp-pagehead">
     <div>
         <h1 class="pp-h1">Organizations</h1>
-        <p class="pp-sub"><?= $lastSync ? 'Synced from Assets ' . esc($lastSync) : 'Not synced from Assets yet' ?></p>
+        <p class="pp-sub"><?= $lastSync ? 'Synced from Assets ' . esc(lcfirst(nice_time($lastSync))) : 'Not synced from Assets yet' ?></p>
     </div>
     <div class="pp-actions">
         <form method="post" action="<?= base_url('admin/pmcs/sync') ?>"><?= csrf_field() ?><button type="submit" class="pp-btn pp-btn--primary" id="syncNow"><i class="bx bx-refresh"></i> Sync from Assets</button></form>

@@ -170,7 +170,7 @@ class PropertiesController extends BaseController
       $vacancies->update((int)$v['id'], ['open_since' => $since, 'coverage' => $coverage, 'updated_by' => $uid]);
     }
     ActivityLogModel::record('vacancy.recorded', $uid, (string)session('user')['email'], $org['name'] . ' ' . $pn . ' ' . $role . ' open since ' . $since . ($coverage !== '' ? ', covered by ' . $coverage : ''));
-    return redirect()->to('/properties')->with('success', $role . ' at ' . $property['name'] . ' is recorded as open since ' . $since . '.');
+    return redirect()->to('/properties')->with('success', $role . ' at ' . $property['name'] . ' is recorded as vacant since ' . nice_date($since) . '.');
   }
   /** The current assignments as a spreadsheet, for the partner's own use. */
   public function export()

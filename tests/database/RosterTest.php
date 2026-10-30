@@ -139,7 +139,7 @@ final class RosterTest extends CIUnitTestCase
     $this->as($this->jane)->get('roster')->assertDontSee('Sam Sites');
     $gone = $this->as($this->jane)->get('roster?departed=1');
     $gone->assertSee('Sam Sites');
-    $gone->assertSee('Departed 2026-10-31');
+    $gone->assertSee('Departed Oct 31, 2026');
     $hist = $this->as($this->jane)->get('roster/' . $id . '/history');
     $hist->assertStatus(200);
     $hist->assertSee('Departed');
@@ -207,7 +207,7 @@ final class RosterTest extends CIUnitTestCase
     sort($keys);
     $this->assertSame(['11600|Site Manager', '12140|Regional Manager', '12140|Site Manager'], $keys);
     $this->assertSame('2026-10-31', $open['12140|Site Manager']['open_since']);
-    $this->as($this->jane)->get('properties')->assertSee('OPEN since 2026-10-31');
+    $this->as($this->jane)->get('properties')->assertSee('OPEN since Oct 31, 2026');
     $this->as($this->jane)->post('roster', $this->sam(['name' => 'New Hire', 'properties' => ['12140']]))->assertRedirectTo('/roster');
     $keys = array_keys($vac->openFor($this->gf));
     sort($keys);

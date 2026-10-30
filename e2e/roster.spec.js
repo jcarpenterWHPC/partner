@@ -78,7 +78,7 @@ test('a departure keeps the person, hidden by default', async ({ page }) => {
   await expect(page).toHaveURL(/departed=1/);
   const row = page.locator('#rosterTable tbody tr', { hasText: 'Pat E2E' });
   await expect(row).toHaveCount(1);
-  await expect(row.locator('.pp-badge--departed')).toContainText('2026-10-31');
+  await expect(row.locator('.pp-badge--departed')).toContainText('Oct 31, 2026');
 });
 
 test('a bad form is sent back with the fields marked', async ({ page }) => {

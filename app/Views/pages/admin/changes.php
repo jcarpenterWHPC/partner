@@ -15,7 +15,7 @@ $label = static fn(string $f): string => $f === 'email_na' ? 'Email N/A' : ucfir
     <?php if (!$entries): ?><tr><td colspan="5" class="pp-empty">No changes yet.</td></tr><?php endif; ?>
     <?php foreach ($entries as $e): $c = json_decode((string)$e['changes'], true) ?: []; ?>
         <tr data-action="<?= esc($e['action'], 'attr') ?>">
-            <td><?= esc($e['created_at']) ?></td>
+            <td title="<?= esc($e['created_at'], 'attr') ?>"><?= esc(nice_time($e['created_at'])) ?></td>
             <td><?= esc((string)$e['pmc_name']) ?></td>
             <td><a href="<?= base_url('roster/' . (int)$e['staff_id'] . '/history?pmc=' . (int)$e['pmc_id']) ?>"><?= esc((string)$e['staff_name']) ?></a></td>
             <td>

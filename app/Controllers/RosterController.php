@@ -153,7 +153,7 @@ class RosterController extends BaseController
     }
     $said = match ($r['action'])
     {
-      'departed' => $clean['name'] . ' is marked as departed.',
+      'departed' => $clean['name'] . ' is marked as departed as of ' . nice_date($clean['end_date']) . '.',
       'reinstated' => $clean['name'] . ' is back on the roster.',
       'unchanged' => 'Nothing changed.',
       default => $clean['name'] . ' was updated.',

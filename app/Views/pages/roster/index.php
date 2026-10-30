@@ -118,7 +118,7 @@ $propList = static function (array $p) use ($names): string {
         <tr class="<?= $p['end_date'] !== null ? 'is-departed' : '' ?>" data-id="<?= (int)$p['id'] ?>" data-position="<?= esc($p['position'], 'attr') ?>" data-roles="<?= esc(implode('|', array_unique(array_merge([$p['position']], array_values($p['roles'])))), 'attr') ?>" data-props="|<?= esc(implode('|', $p['properties']), 'attr') ?>|" data-text="<?= esc(mb_strtolower(implode(' ', [$p['name'], $p['title'], $p['email'], $p['mobile_phone'], $p['office_phone'], $p['position'], $propList($p)])), 'attr') ?>">
             <td>
                 <strong><?= esc($p['name']) ?></strong>
-                <?php if ($p['end_date'] !== null): ?><span class="pp-badge pp-badge--departed">Departed <?= esc($p['end_date']) ?></span><?php endif; ?>
+                <?php if ($p['end_date'] !== null): ?><span class="pp-badge pp-badge--departed">Departed <?= esc(nice_date($p['end_date'])) ?></span><?php endif; ?>
             </td>
             <td><?= esc($p['position']) ?><?= $p['title'] !== '' ? '<br><span class="pp-muted">' . esc($p['title']) . '</span>' : '' ?></td>
             <td>
@@ -131,7 +131,7 @@ $propList = static function (array $p) use ($names): string {
                 <?php $n = count($p['properties']); ?>
                 <?= $n === 0 ? '<span class="pp-muted">—</span>' : esc($n === 1 ? $propList($p) : $n . ' properties') ?>
             </td>
-            <td><?= esc((string)$p['start_date']) ?></td>
+            <td><?= esc(nice_date($p['start_date'])) ?></td>
             <td class="pp-rowactions">
                 <a href="<?= base_url('roster/' . (int)$p['id'] . '/edit') ?>" aria-label="Edit <?= esc($p['name'], 'attr') ?>"><i class="bx bx-edit"></i></a>
                 <a href="<?= base_url('roster/' . (int)$p['id'] . '/history') ?>" aria-label="History of <?= esc($p['name'], 'attr') ?>"><i class="bx bx-history"></i></a>

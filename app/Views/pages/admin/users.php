@@ -63,7 +63,7 @@ $accounts = new \App\Libraries\Accounts();
             <td><?= esc($u['email']) ?></td>
             <td><?= esc($u['pmc_name'] ?: 'WHPC') ?></td>
             <td><?= (int)$u['is_admin'] === 1 ? ($accounts->isConfiguredAdmin((string)$u['email']) ? 'WHPC admin (standing)' : 'WHPC admin') : 'Partner' ?></td>
-            <td><?= esc((string)$u['last_login_at']) ?></td>
+            <td><?= esc(nice_time($u['last_login_at'], 'Never')) ?></td>
             <td class="pp-rowactions">
                 <?php if ((int)$u['id'] !== (int)session('user')['id'] && !$accounts->isConfiguredAdmin((string)$u['email'])): ?>
                 <a href="<?= base_url('admin/users/' . (int)$u['id'] . '/edit') ?>" aria-label="Edit <?= esc($u['name'], 'attr') ?>"><i class="bx bx-edit"></i></a>

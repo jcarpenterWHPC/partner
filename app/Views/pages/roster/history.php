@@ -16,6 +16,9 @@ $show = static function ($v) use ($names, $person): string {
         sort($n);
         return $n ? implode(', ', $n) : '—';
     }
+    if (is_string($v) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $v)) {
+        return nice_date($v);
+    }
     return $v === null || $v === '' ? '—' : (string)$v;
 };
 ?>
@@ -35,7 +38,7 @@ $show = static function ($v) use ($names, $person): string {
     <li class="pp-timeline__item" data-action="<?= esc($e['action'], 'attr') ?>">
         <div class="pp-timeline__head">
             <span class="pp-badge pp-badge--<?= esc($e['action'], 'attr') ?>"><?= esc(ucfirst($e['action'])) ?></span>
-            <span class="pp-muted"><?= esc($e['created_at']) ?> · <?= esc($e['user_name'] ?: 'system') ?></span>
+            <span class="pp-muted" title="<?= esc($e['created_at'], 'attr') ?>"><?= esc(nice_time($e['created_at'])) ?> · <?= esc($e['user_name'] ?: 'Assets sync') ?></span>
         </div>
         <?php if ($e['action'] === 'added' || $e['action'] === 'imported'): ?>
             <dl class="pp-dl">
