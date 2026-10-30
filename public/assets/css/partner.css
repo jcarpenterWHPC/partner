@@ -300,3 +300,22 @@ a.pp-card:hover, a.pp-card:focus-visible {
 .pp-guide__body li + li { margin-top: 6px; }
 .pp-guide__body code { font-size: .9em; background: var(--whpc-surface-2); padding: 1px 5px; border-radius: 4px; }
 @media (max-width: 900px) { .pp-guide { grid-template-columns: 1fr; } .pp-guide__nav { position: static; } .pp-topbar__help span { display: none; } }
+
+/* Roster summary */
+.pp-stats { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 14px; }
+.pp-stat { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 128px; padding: 10px 14px; background: var(--whpc-surface); border: 1px solid var(--whpc-line); border-radius: 10px; font: inherit; color: inherit; text-align: left; cursor: pointer; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+.pp-stat:hover { border-color: var(--whpc-slate); box-shadow: var(--whpc-shadow-sm); }
+.pp-stat.is-active { border-color: var(--whpc-slate); background: var(--whpc-slate-soft, #e8eef2); }
+.pp-stat__n { font-size: 1.45rem; font-weight: 700; line-height: 1.1; color: var(--whpc-navy); }
+.pp-stat__label { font-size: .82rem; color: var(--whpc-muted); }
+.pp-stat__open { font-size: .78rem; font-weight: 700; color: #8a2e22; }
+.pp-stat--open .pp-stat__n { color: #8a2e22; }
+.pp-toolbar .pp-input--select { max-width: 240px; }
+
+/* Vacancy page: the two choices */
+.pp-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.pp-choice { margin: 0; }
+.pp-choice__title { margin: 0 0 8px; font-size: 1.15rem; color: var(--whpc-heading); display: flex; align-items: center; gap: 8px; }
+.pp-choice p { margin: 0 0 14px; line-height: 1.5; }
+.pp-choice .pp-form { margin: 0; }
+@media (max-width: 800px) { .pp-choices { grid-template-columns: 1fr; } }

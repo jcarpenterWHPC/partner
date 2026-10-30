@@ -116,6 +116,11 @@ final class RosterTest extends CIUnitTestCase
     $page->assertStatus(200);
     $page->assertSee('Sam Site');
     $page->assertSee('2 properties');
+    $page->assertSeeElement('#rosterSearch');
+    $page->assertSeeElement('#positionFilter');
+    $page->assertSeeElement('#propertyFilter');
+    $this->assertStringContainsString('id="toggleDeparted" checked', (string)$page->response()->getBody(), 'departed hidden by default');
+    $this->assertStringContainsString('pp-stat__label">Site Manager<', (string)$page->response()->getBody(), 'the summary has a Site Manager tile');
 
     $this->as($this->jane)->post('roster/' . $id, $this->sam(['name' => 'Sam Sites', 'properties' => ['12140']]))->assertRedirectTo('/roster');
     $c = $this->changes($id);
@@ -179,11 +184,15 @@ final class RosterTest extends CIUnitTestCase
     $board = $this->as($this->jane)->get('properties');
     $board->assertStatus(200);
     $board->assertSee('Sam Site');
-    $board->assertSee('Record vacancy');
+    $board->assertSee('Nobody on file');
+    $board->assertSee('Add or mark vacant');
+    $this->as($this->jane)->get('roster/new?position=Regional+Manager&property=12140&back=properties')->assertSee('value="Regional Manager" selected');
     $this->assertSame([], $vac->findAll(), 'nothing has gone open yet; a never-staffed role is just empty');
 
     // Jane records the regional manager role at Hearthside as open, with coverage.
-    $this->as($this->jane)->get('properties/open?property=12140&role=Regional+Manager')->assertSee('Record as open');
+    $open = $this->as($this->jane)->get('properties/open?property=12140&role=Regional+Manager');
+    $open->assertSee('Mark as vacant');
+    $open->assertSee('Someone does this job');
     $this->as($this->jane)->post('properties/open', ['property' => '12140', 'role' => 'Regional Manager', 'open_since' => '2026-10-01', 'coverage' => 'Rene Mosback (interim)'])->assertRedirectTo('/properties');
     $this->assertSame('Rene Mosback (interim)', $vac->openOne($this->gf, '12140', 'Regional Manager')['coverage']);
     $this->as($this->jane)->get('properties')->assertSee('Covered by Rene Mosback (interim)');

@@ -74,7 +74,8 @@ test('a departure keeps the person, hidden by default', async ({ page }) => {
   await page.click('#savePerson');
   await expect(page.locator('.whpc-alert--success')).toContainText('departed');
   await expect(page.locator('#rosterTable tbody tr', { hasText: 'Pat E2E' })).toHaveCount(0);
-  await page.click('#toggleDeparted');
+  await page.uncheck('#toggleDeparted');
+  await expect(page).toHaveURL(/departed=1/);
   const row = page.locator('#rosterTable tbody tr', { hasText: 'Pat E2E' });
   await expect(row).toHaveCount(1);
   await expect(row.locator('.pp-badge--departed')).toContainText('2026-10-31');
@@ -101,7 +102,8 @@ test('an admin sees every company, the accounts and the change log', async ({ pa
   await pmcRow.locator('a', { hasText: 'Roster' }).click();
   await expect(page).toHaveURL(/\/roster/);
   await expect(page.locator('#pmcPick')).toBeVisible();
-  await page.click('#toggleDeparted');
+  await page.uncheck('#toggleDeparted');
+  await expect(page).toHaveURL(/departed=1/);
   await expect(page.locator('#rosterTable tbody tr', { hasText: 'Pat E2E' })).toHaveCount(1);
   await page.goto('/admin/users');
   await expect(page.locator('#usersTable tbody tr', { hasText: USER })).toHaveCount(1);
