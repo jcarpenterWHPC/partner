@@ -51,7 +51,8 @@ final class AccessPolicyTest extends CIUnitTestCase
     $this->cfg->microsoftTenant = '';
     $this->cfg->microsoftClientId = '';
     $this->cfg->microsoftClientSecret = '';
-    (new UserModel())->insert(['email' => 'intruder@whpc.com', 'name' => 'Planted Row', 'pmc_id' => null, 'is_admin' => 1, 'is_active' => 1]);
+    // A WHPC admin row that was disabled: refused like a stranger.
+    (new UserModel())->insert(['email' => 'intruder@whpc.com', 'name' => 'Planted Row', 'pmc_id' => null, 'is_admin' => 1, 'is_active' => 0]);
   }
   protected function tearDown(): void
   {
@@ -118,7 +119,24 @@ final class AccessPolicyTest extends CIUnitTestCase
     $row = $users->find($id);
     $this->assertSame([1, 1, null, ''], [(int)$row['is_admin'], (int)$row['is_active'], $row['pmc_id'], $row['name']]);
   }
-  public function testAnyOtherWhpcAddressIsAStrangerEvenWithARow(): void
+  public function testAWhpcAdminAddedOnPortalUsersSignsInLikeAConfiguredOne(): void
+  {
+    $admin = ['id' => 999, 'email' => 'joe@whpc.com', 'name' => 'Joe Carpenter', 'pmc_id' => null, 'pmc_name' => '', 'is_admin' => true];
+    $this->withSession(['user' => $admin])->post('admin/users', ['email' => 'Staffer@whpc.com', 'name' => 'A Staffer', 'pmc_id' => (new \App\Models\PmcModel())->idFor('Goldfinch Living')])->assertRedirectTo('/admin/users');
+    $row = (new UserModel())->where('email', 'staffer@whpc.com')->first();
+    $this->assertSame([1, 1, null], [(int)$row['is_admin'], (int)$row['is_active'], $row['pmc_id']], 'a WHPC address is an admin with no organisation, whatever was posted');
+    $this->withSession([])->post('login', ['email' => 'staffer@whpc.com'])->assertRedirectTo('/login/verify');
+    $this->assertSame('staffer@whpc.com', Mailer::$outbox[0]['to']);
+    preg_match('~/login/link/([0-9a-f]{64})~', Mailer::$outbox[0]['text'], $t);
+    $this->get('login/link/' . $t[1])->assertRedirectTo('/');
+    $this->assertTrue(session('user')['is_admin']);
+    // Disabled on Portal users: a stranger again.
+    $this->withSession(['user' => $admin])->post('admin/users/' . $row['id'] . '/toggle')->assertRedirectTo('/admin/users');
+    Mailer::$outbox = [];
+    $this->withSession([])->post('login', ['email' => 'staffer@whpc.com'])->assertRedirectTo('/login/verify');
+    $this->assertSame([], Mailer::$outbox);
+  }
+  public function testAWhpcAddressWithoutAnActiveAdminRowIsAStranger(): void
   {
     $this->post('login', ['email' => 'intruder@whpc.com'])->assertRedirectTo('/login/verify');
     $this->post('login', ['email' => 'nobody@whpc.com'])->assertRedirectTo('/login/verify');
@@ -174,6 +192,9 @@ final class AccessPolicyTest extends CIUnitTestCase
     $this->comeBack('brian@whpc.com', name: 'Brian From Entra')->assertRedirectTo('/');
     $this->assertSame('Brian From Entra', session('user')['name'], 'a bare address in the list takes its name from Microsoft');
 
+    (new UserModel())->insert(['email' => 'staffer@whpc.com', 'name' => 'A Staffer', 'pmc_id' => null, 'is_admin' => 1, 'is_active' => 1]);
+    $this->comeBack('staffer@whpc.com')->assertRedirectTo('/');
+    $this->assertTrue(session('user')['is_admin'], 'an admin added on Portal users signs in with Microsoft too');
     foreach ([['intruder@whpc.com', self::TID], ['nobody@whpc.com', self::TID], ['joe@whpc.com', '99999999-2222-3333-4444-555555555555'], ['joe@pmc.test', self::TID]] as [$email, $tid])
     {
       $res = $this->comeBack($email, $tid);
@@ -187,20 +208,18 @@ final class AccessPolicyTest extends CIUnitTestCase
     $this->assertCount(1, $this->actions('login.failed'), 'a stale start is not a provider failure; a bad state is');
     $this->get('login/microsoft/callback?code=x&state=st')->assertRedirectTo('/login');
   }
-  public function testTheAdminScreenMakesPmcAccountsOnlyAndLeavesAdminsAlone(): void
+  public function testTheAdminScreenNeverMakesAPartnerAnAdminAndLeavesStandingAdminsAlone(): void
   {
     $admin = ['id' => 999, 'email' => 'joe@whpc.com', 'name' => 'Joe Carpenter', 'pmc_id' => null, 'pmc_name' => '', 'is_admin' => true];
     $gf = (new \App\Models\PmcModel())->idFor('Goldfinch Living');
     $users = new UserModel();
     $this->withSession(['user' => $admin])->post('admin/users', ['email' => 'new@pmc.test', 'name' => 'New Person', 'pmc_id' => $gf, 'is_admin' => 1])->assertRedirectTo('/admin/users');
-    $this->assertSame(0, (int)$users->where('email', 'new@pmc.test')->first()['is_admin'], 'the old checkbox is ignored');
-    $this->withSession(['user' => $admin])->post('admin/users', ['email' => 'staffer@whpc.com', 'name' => 'A Staffer', 'pmc_id' => $gf]);
-    $this->assertNull($users->where('email', 'staffer@whpc.com')->first());
+    $this->assertSame(0, (int)$users->where('email', 'new@pmc.test')->first()['is_admin'], 'a posted is_admin is ignored');
     $this->withSession(['user' => $admin])->post('admin/users', ['email' => 'nopmc@pmc.test', 'name' => 'No Company']);
     $this->assertNull($users->where('email', 'nopmc@pmc.test')->first());
     $page = $this->withSession(['user' => $admin])->get('admin/users');
     $page->assertStatus(200);
-    $page->assertDontSee('WHPC admin');
+    $page->assertSee('Partner');
 
     $brian = (int)$users->insert(['email' => 'brian@whpc.com', 'name' => 'Brian', 'pmc_id' => null, 'is_admin' => 1, 'is_active' => 1], true);
     $this->withSession(['user' => $admin])->post('admin/users/' . $brian . '/toggle')->assertRedirectTo('/admin/users');
@@ -240,7 +259,7 @@ final class AccessPolicyTest extends CIUnitTestCase
     $this->withSession(['user' => $admin])->post('admin/users/' . $jane, ['name' => 'Jane', 'email' => 'pat@pmc.test', 'pmc_id' => $gf]);
     $this->assertSame('jane.d@pmc.test', $users->find($jane)['email'], 'another account\'s address is refused');
     $this->withSession(['user' => $admin])->post('admin/users/' . $jane, ['name' => 'Jane', 'email' => 'jane@whpc.com', 'pmc_id' => $gf]);
-    $this->assertSame('jane.d@pmc.test', $users->find($jane)['email'], 'a WHPC address is refused');
+    $this->assertSame('jane.d@pmc.test', $users->find($jane)['email'], 'a partner account cannot be turned into a WHPC admin by editing its address');
     $this->withSession(['user' => $admin])->post('admin/users/' . $jane, ['name' => 'Jane', 'email' => 'jane.d@pmc.test']);
     $this->assertSame($other, (int)$users->find($jane)['pmc_id'], 'no company is refused');
 

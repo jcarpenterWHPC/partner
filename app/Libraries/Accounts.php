@@ -8,10 +8,13 @@ use Config\Partner;
 /**
  * Who may sign in, and as whom.
  *
- * WHPC people are the configured admins and nobody else: a listed address gets its account
- * on first sign-in and is kept an active admin; any other address at WHPC's domain is
- * refused outright. Everyone else needs the account a WHPC admin made for them; nothing
- * here or in the admin screens makes such an account an admin.
+ * WHPC people are admins, and only admins. The configured ones (`partner.admins`) are the
+ * safety net: a listed address gets its account on first sign-in and is kept an active
+ * admin whatever the table says. Any other WHPC address signs in only when an admin has
+ * added it on Portal users (an active admin row with no organisation); a disabled or
+ * missing one is refused like a stranger. Everyone else needs the partner account a WHPC
+ * admin made for them; nothing in the admin screens makes such an account an admin (only
+ * `partner:e2e-seed`, outside production).
  */
 class Accounts
 {
@@ -22,7 +25,7 @@ class Accounts
     $this->cfg = $cfg ?? config(Partner::class);
     $this->users = $users ?? new UserModel();
   }
-  /** The account $email signs in as (with its PMC's name), or null when it may not. */
+  /** The account $email signs in as (with its organisation's name), or null when it may not. */
   public function forSignIn(string $email, ?string $name = null): ?array
   {
     $email = mb_strtolower(trim($email));
@@ -33,7 +36,8 @@ class Accounts
     $listed = $this->cfg->admins();
     if (!array_key_exists($email, $listed))
     {
-      return null;
+      $row = $this->users->activeByEmail($email);
+      return $row !== null && (int)$row['is_admin'] === 1 && empty($row['pmc_id']) ? $row : null;
     }
     $row = $this->users->where('email', $email)->first();
     $want = ['is_admin' => 1, 'is_active' => 1, 'pmc_id' => null];

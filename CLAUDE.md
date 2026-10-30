@@ -40,9 +40,11 @@ WHPC WAF). TLS ends at CloudFront; the boxes serve plain HTTP on :80 and read
 - **Sign-in** (`Auth`): PMC users get an emailed one-time code + one-click link; WHPC
   people sign in with Microsoft (Entra, `App\Libraries\MicrosoftSignIn`) once it is
   configured. PMC accounts are made by WHPC admins (`/admin/users`, or
-  `php spark partner:user`); a PMC user belongs to one PMC. The WHPC admins are the
-  addresses in `Config\Partner::$admins` (secret `partner.admins`) and nobody else at
-  WHPC can sign in; their accounts appear on first sign-in (`App\Libraries\Accounts`).
+  `php spark partner:user`); a PMC user belongs to one PMC. WHPC people are admins
+  only: the standing ones in `Config\Partner::$admins` (secret `partner.admins`) whose
+  accounts appear on first sign-in and cannot be disabled, plus any whpc.com address an
+  admin adds on Portal users (`App\Libraries\Accounts`). A WHPC address with no active
+  admin row is refused like a stranger.
 - **Organisations** (`pmcs`, `PmcModel`): a *management company* (Assets' management_co,
   made by the property sync) owns properties; a *service agency* (kind `services`: LSS,
   added by an admin on `/admin/pmcs`) staffs other companies' properties. A user belongs

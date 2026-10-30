@@ -36,9 +36,9 @@ class AdminController extends BaseController
     {
       return redirect()->back()->withInput()->with('errors', $in['errors']);
     }
-    $id = (new UserModel())->insert($in['values'] + ['is_admin' => 0, 'is_active' => 1], true);
-    ActivityLogModel::record('admin.user_added', (int)session('user')['id'], (string)session('user')['email'], $in['values']['email'] . ' #' . $id);
-    return redirect()->to('/admin/users')->with('success', $in['values']['email'] . ' can now sign in.');
+    $id = (new UserModel())->insert($in['values'] + ['is_active' => 1], true);
+    ActivityLogModel::record('admin.user_added', (int)session('user')['id'], (string)session('user')['email'], $in['values']['email'] . ' #' . $id . ($in['values']['is_admin'] === 1 ? ' (WHPC admin)' : ''));
+    return redirect()->to('/admin/users')->with('success', $in['values']['email'] . ($in['values']['is_admin'] === 1 ? ' can now sign in with Microsoft as a WHPC admin.' : ' can now sign in.'));
   }
   public function userEdit(int $id)
   {
@@ -97,10 +97,11 @@ class AdminController extends BaseController
     return $u;
   }
   /**
-   * The posted name, email and company, checked. $current is the account being edited,
-   * or null for a new one.
+   * The posted name, email and organisation, checked. A WHPC address is an admin with no
+   * organisation; any other address is a partner user and needs one. $current is the
+   * account being edited, or null for a new one.
    *
-   * @return array{values:array{name:string,email:string,pmc_id:?int}, errors:array<string,string>}
+   * @return array{values:array{name:string,email:string,pmc_id:?int,is_admin:int}, errors:array<string,string>}
    */
   private function userInput(?array $current): array
   {
@@ -112,16 +113,17 @@ class AdminController extends BaseController
     {
       $errors['email'] = 'Enter a valid email address.';
     }
-    elseif (config(Partner::class)->isWhpc($email))
+    $whpc = !isset($errors['email']) && config(Partner::class)->isWhpc($email);
+    if ($current !== null && !isset($errors['email']) && $whpc !== ((int)$current['is_admin'] === 1))
     {
-      $errors['email'] = 'WHPC admins are set in the portal configuration, not here.';
+      $errors['email'] = 'Partner users and WHPC admins are separate accounts; add a new one instead.';
     }
     if ($name === '')
     {
       $errors['name'] = 'Enter the person\'s name.';
     }
     $pmc = $pmcId > 0 ? (new PmcModel())->find($pmcId) : null;
-    if ($pmc === null && (int)($current['is_admin'] ?? 0) !== 1)
+    if ($pmc === null && !$whpc && !isset($errors['email']))
     {
       $errors['pmc_id'] = 'Choose the organization.';
     }
@@ -133,7 +135,7 @@ class AdminController extends BaseController
         $errors['email'] = 'That address already has an account.';
       }
     }
-    return ['values' => ['name' => $name, 'email' => $email, 'pmc_id' => $pmc === null ? null : (int)$pmc['id']], 'errors' => $errors];
+    return ['values' => ['name' => $name, 'email' => $email, 'pmc_id' => $whpc || $pmc === null ? null : (int)$pmc['id'], 'is_admin' => $whpc ? 1 : 0], 'errors' => $errors];
   }
   public function userToggle(int $id)
   {
@@ -149,7 +151,7 @@ class AdminController extends BaseController
     }
     if ((new Accounts())->isConfiguredAdmin((string)$u['email']))
     {
-      return redirect()->to('/admin/users')->with('error', 'WHPC admins are set in the portal configuration, not here.');
+      return redirect()->to('/admin/users')->with('error', $u['name'] . ' is a standing admin set in the portal configuration and cannot be disabled here.');
     }
     $on = (int)$u['is_active'] === 1 ? 0 : 1;
     $users->update($id, ['is_active' => $on]);

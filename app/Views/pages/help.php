@@ -92,11 +92,11 @@ $orgName = $org['name'] ?? 'your organization';
         <section id="admin">
             <h2>For WHPC admins</h2>
             <ul>
-                <li><strong>Portal users</strong>: who may sign in. Add a partner user with their name, work email and organization. Disable rather than delete anyone who has recorded changes.</li>
+                <li><strong>Portal users</strong>: who may sign in. Add a partner user with their name, work email and organization. A whpc.com address becomes a WHPC admin instead, with no organization. Disable rather than delete anyone who has recorded changes.</li>
                 <li><strong>Organizations</strong>: management companies and their properties come from Assets nightly and whenever you click <strong>Sync from Assets</strong>; the same sync imports Assets' property contacts into the rosters. Service agencies such as LSS are added here by hand; their people may cover any property.</li>
                 <li><strong>Recent changes</strong>: everything partners have entered, newest first, across every organization.</li>
                 <li>On the roster and Properties pages you choose which organization to look at; you can edit on their behalf.</li>
-                <li>WHPC admins themselves are set in the portal's configuration (the <code>partner.admins</code> secret), not on these pages. Other WHPC addresses cannot sign in.</li>
+                <li>Two standing admins are fixed in the portal's configuration (the <code>partner.admins</code> secret) so nobody can lock WHPC out; they cannot be disabled here. Every other WHPC admin is managed on Portal users, and a WHPC address that is not on that page cannot sign in.</li>
             </ul>
         </section>
         <?php endif; ?>

@@ -22,8 +22,8 @@ $accounts = new \App\Libraries\Accounts();
 <?php endif; ?>
 <?= view('partials/help', ['id' => 'users', 'title' => 'How this works', 'tips' => [
     'Partner users sign in with a one-time code emailed to them; no password to set. Add one with their name, work email and organization, and tell them to go to ' . esc(base_url()) . '.',
-    'A user sees only their organization\'s people. <strong>Disable</strong> rather than delete anyone who has recorded changes, so the history keeps its author.',
-    'Admin accounts for WHPC staff are set in the portal\'s configuration (the <code>partner.admins</code> secret), not here. Other WHPC addresses cannot sign in.',
+    'A <strong>whpc.com</strong> address becomes a WHPC admin: no organization, signs in with Microsoft, sees and can edit everything. Any other address is a partner user who sees only their organization\'s people.',
+    '<strong>Disable</strong> rather than delete anyone who has recorded changes, so the history keeps its author. The standing admins in the portal configuration cannot be changed here.',
 ]]) ?>
 <form method="post" action="<?= base_url('admin/users') ?>" class="pp-form pp-form--wide pp-panel" id="userForm">
     <?= csrf_field() ?>
@@ -38,9 +38,9 @@ $accounts = new \App\Libraries\Accounts();
             <input class="pp-input" id="u_email" name="email" type="email" value="<?= esc(old('email', ''), 'attr') ?>" maxlength="255" required>
             <?= $err('email') ?>
         </div>
-        <div class="pp-field">
-            <label class="pp-label" for="u_pmc">Organization</label>
-            <select class="pp-input pp-input--select" id="u_pmc" name="pmc_id" required>
+        <div class="pp-field" id="u_pmc_field">
+            <label class="pp-label" for="u_pmc">Organization <span class="pp-muted">(not for whpc.com)</span></label>
+            <select class="pp-input pp-input--select" id="u_pmc" name="pmc_id">
                 <option value=""></option>
                 <?php foreach ($pmcs as $p): ?>
                 <option value="<?= (int)$p['id'] ?>" <?= (string)old('pmc_id', '') === (string)$p['id'] ? 'selected' : '' ?>><?= esc($p['name']) ?></option>
@@ -62,7 +62,7 @@ $accounts = new \App\Libraries\Accounts();
             <td><strong><?= esc($u['name']) ?></strong></td>
             <td><?= esc($u['email']) ?></td>
             <td><?= esc($u['pmc_name'] ?: 'WHPC') ?></td>
-            <td><?= (int)$u['is_admin'] === 1 ? 'Admin' : 'Partner' ?></td>
+            <td><?= (int)$u['is_admin'] === 1 ? ($accounts->isConfiguredAdmin((string)$u['email']) ? 'WHPC admin (standing)' : 'WHPC admin') : 'Partner' ?></td>
             <td><?= esc((string)$u['last_login_at']) ?></td>
             <td class="pp-rowactions">
                 <?php if ((int)$u['id'] !== (int)session('user')['id'] && !$accounts->isConfiguredAdmin((string)$u['email'])): ?>
@@ -84,4 +84,15 @@ $accounts = new \App\Libraries\Accounts();
     </tbody>
 </table>
 </div>
+<?= $this->endSection() ?>
+<?= $this->section('scripts') ?>
+<script>
+(function () {
+    var email = document.getElementById('u_email'), field = document.getElementById('u_pmc_field');
+    if (!email || !field) { return; }
+    var sync = function () { field.hidden = /@whpc\.com$/i.test(email.value.trim()); };
+    email.addEventListener('input', sync);
+    sync();
+})();
+</script>
 <?= $this->endSection() ?>

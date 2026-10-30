@@ -29,9 +29,9 @@ $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fiel
             <input class="pp-input" id="u_email" name="email" type="email" value="<?= esc((string)$v['email'], 'attr') ?>" maxlength="255" required>
             <?= $err('email') ?>
         </div>
-        <div class="pp-field">
-            <label class="pp-label" for="u_pmc">Organization</label>
-            <select class="pp-input pp-input--select" id="u_pmc" name="pmc_id" <?= (int)$user['is_admin'] === 1 ? '' : 'required' ?>>
+        <div class="pp-field" id="u_pmc_field">
+            <label class="pp-label" for="u_pmc">Organization <span class="pp-muted">(not for whpc.com)</span></label>
+            <select class="pp-input pp-input--select" id="u_pmc" name="pmc_id">
                 <option value=""></option>
                 <?php foreach ($pmcs as $p): ?>
                 <option value="<?= (int)$p['id'] ?>" <?= (string)($v['pmc_id'] ?? '') === (string)$p['id'] ? 'selected' : '' ?>><?= esc($p['name']) ?></option>
@@ -44,4 +44,15 @@ $err = static fn(string $f): string => isset($errors[$f]) ? '<div class="pp-fiel
         <button type="submit" class="pp-btn pp-btn--primary" id="saveUser">Save</button>
     </div>
 </form>
+<?= $this->endSection() ?>
+<?= $this->section('scripts') ?>
+<script>
+(function () {
+    var email = document.getElementById('u_email'), field = document.getElementById('u_pmc_field');
+    if (!email || !field) { return; }
+    var sync = function () { field.hidden = /@whpc\.com$/i.test(email.value.trim()); };
+    email.addEventListener('input', sync);
+    sync();
+})();
+</script>
 <?= $this->endSection() ?>

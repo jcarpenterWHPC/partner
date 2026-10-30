@@ -21,7 +21,7 @@ class UserCommand extends BaseCommand
   protected $name = 'partner:user';
   protected $description = 'Add, list, enable or disable PMC accounts.';
   protected $usage = 'partner:user <add|list|enable|disable> [email] ["Name"] [--pmc "Company"]';
-  protected $options = ['--pmc' => 'The property management company, as Assets names it (add).'];
+  protected $options = ['--pmc' => 'The organisation, as Assets names it (add). A whpc.com address is added as a WHPC admin and takes none.'];
   public function run(array $params)
   {
     $users = new UserModel();
@@ -46,8 +46,9 @@ class UserCommand extends BaseCommand
       }
       if (config(\Config\Partner::class)->isWhpc($email))
       {
-        CLI::error('WHPC admins are the addresses in partner.admins; they are not added here.');
-        return EXIT_ERROR;
+        $id = $users->insert(['email' => $email, 'name' => trim((string)($params[2] ?? '')), 'pmc_id' => null, 'is_admin' => 1, 'is_active' => 1], true);
+        CLI::write("Added {$email} as a WHPC admin (id {$id}).", 'green');
+        return EXIT_SUCCESS;
       }
       $pmcName = trim((string)(CLI::getOption('pmc') ?? ''));
       $pmc = $pmcName === '' ? null : (new \App\Models\PmcModel())->byName($pmcName);
