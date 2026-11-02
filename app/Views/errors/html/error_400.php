@@ -69,6 +69,7 @@
     </style>
 </head>
 <body>
+<?= view('partials/env-banner') ?>
 <div class="wrap">
     <h1>400</h1>
 

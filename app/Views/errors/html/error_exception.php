@@ -20,6 +20,7 @@ $errorId = uniqid('error', true);
     </script>
 </head>
 <body onload="init()">
+<?= view('partials/env-banner') ?>
 
     <!-- Header -->
     <div class="header">

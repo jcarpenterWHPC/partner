@@ -310,6 +310,12 @@ final class RosterTest extends CIUnitTestCase
     $this->withSession([])->post('roster', $this->sam())->assertRedirectTo('/login?expired=1');
     $home = $this->as($this->jane)->get('/');
     $home->assertSeeElement('#cardRoster');
+    // The TEST banner follows the environment, never the hostname: on under `testing`, gone in production.
+    $home->assertSeeElement('.env-tab');
+    $this->assertStringContainsString('Test &middot; ' . parse_url(base_url(), PHP_URL_HOST), (string)$home->response()->getBody());
+    $this->withSession([])->get('login')->assertSeeElement('.env-frame');
+    $this->assertSame('', trim(preg_replace('/<!--.*?-->/s', '', view('partials/env-banner', ['env' => 'production']))), 'production renders nothing');
+    $this->assertStringContainsString('env-tab', view('partials/env-banner', ['env' => 'development']));
     $home->assertSee('New here? How this works');
     $guide = $this->as($this->jane)->get('help');
     $guide->assertStatus(200);

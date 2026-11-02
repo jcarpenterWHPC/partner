@@ -18,6 +18,7 @@
     <link href="<?= asset('css/partner.css') ?>" rel="stylesheet">
 </head>
 <body class="pp-body">
+<?= view('partials/env-banner') ?>
 <header class="pp-topbar">
     <a class="pp-topbar__brand" href="<?= base_url('/') ?>">
         <img src="<?= asset('images/brand/whpc-logo-white.svg') ?>" alt="Wisconsin Housing Preservation Corp.">

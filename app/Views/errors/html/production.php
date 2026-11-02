@@ -11,6 +11,7 @@
     </style>
 </head>
 <body>
+<?= view('partials/env-banner') ?>
 
     <div class="container text-center">
 

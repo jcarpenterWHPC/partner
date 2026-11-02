@@ -25,6 +25,7 @@
     <link href="<?= asset('css/partner.css') ?>" rel="stylesheet">
 </head>
 <body class="whpc-login-body">
+<?= view('partials/env-banner') ?>
     <div class="whpc-login">
         <aside class="whpc-login__brand">
             <img class="whpc-login__keyhole" src="<?= asset('images/brand/keyhole-white.svg') ?>" alt="" aria-hidden="true">
